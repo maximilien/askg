@@ -1,0 +1,36 @@
+neo4j:
+  local:
+    uri: "bolt://localhost:7687"
+    user: "neo4j"
+    password: "password"
+  remote:
+    uri: "neo4j+s://some.databases.neo4j.io" # Update with your remote Neo4j instance
+    user: "neo4j"
+    password: "password" # Update with your remote password
+
+github:
+  token: token123  # Set your GitHub token here
+
+storage:
+  base_path: "./data"
+  registries_path: "./data/registries"
+  snapshots_path: "./data/snapshots"
+  master_path: "./data/master"
+
+scraping:
+  max_retries: 3
+  retry_delay: 5
+  timeout: 30
+  user_agent: "MCP-Knowledge-Graph-Scraper/1.0"
+
+registries:
+  github:
+    search_query: "mcp server"
+    topics: ["mcp", "model-context-protocol"]
+  mcp_so:
+    base_url: "https://mcp.so"
+  glama:
+    base_url: "https://glama.ai/mcp"
+    search_patterns: ["glama.json"]
+  mcp_market:
+    base_url: "https://mcpmarket.com"

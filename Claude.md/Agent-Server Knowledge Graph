@@ -1,0 +1,18 @@
+Agent-Server Knowledge Graph
+
+Build a comprehensive Knowledge Graph of MCP servers in Neo4j.
+
+Use the following sources: 
+
+-- original github repository: https://github.com/modelcontextprotocol
+-- mcp.so https://mcp.so
+-- Glama https://glama.ai/mcp
+-- MCP registry registry: https://mastra.ai/mcp-registry-registry and all its subregistries
+
+Create a Python codebase with Pydantic models representing an MCP server, and develop an ontology where servers are grouped by the kind of data they work with, the kind of work they do -- operating software, connecting to databases, etc.  
+
+Once the servers are modeled as Pydantic models, model the connections between them via the ontology as Pydantic models too.
+
+Develop a robust way to scrape each registry in a subdirectory with its own name, and there store versioned files for each server.  Use the date of the scrape or download to name each file.  For registries like Glama, that require to upload a glama.json file, use that file instead of scraping.  Find glama.json files on github and anywhere else on the web.  Keep a record of where and when you found them.  The scraping and download process should be resumable and should not repeat the work already done.  It should detect that the record has changed and update it, by downloading a new one with the current date.  If the record has not changed use the previous one.
+
+Once the Pydantic representation of the MCP Knowledge Graph is built, load it into a Neo4j instance.  Create Cypher model of MCOOP server nodes and ontological relationships between them from the Pydantic models.
