@@ -5,3 +5,4 @@ mcp-server-demo
 glama
 glama_files.csv
 .config.yaml
+.coverage*

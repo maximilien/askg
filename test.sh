@@ -142,15 +142,14 @@ echo ""
 if "${pytest_args[@]}"; then
     echo ""
     echo "=========================="
-    print_success "All tests passed!"
+    print_success "All core tests passed!"
     echo ""
-    echo "🎉 Test run completed successfully!"
-    exit 0
+    echo "🎉 Core test run completed successfully!"
 else
     exit_code=$?
     echo ""
     echo "=========================="
-    print_error "Some tests failed!"
+    print_error "Some core tests failed!"
     echo "Exit code: $exit_code"
     echo ""
     echo "💡 Tips for fixing test failures:"
@@ -160,4 +159,12 @@ else
     echo "4. Run individual tests to isolate issues:"
     echo "   uv run pytest tests/test_specific_file.py -v"
     exit $exit_code
+fi
+
+# ================= MCP Server Tests =================
+print_status "Running MCP server tests (mcp/run_tests.py) ..."
+if python mcp/run_tests.py; then
+    print_success "MCP server tests passed!"
+else
+    print_warning "MCP server tests failed! (see output above)"
 fi 
