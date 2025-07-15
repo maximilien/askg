@@ -1,0 +1,15 @@
+repos:
+  # - repo: https://github.com/astral-sh/ruff-pre-commit
+  #   rev: v0.12.3
+  #   hooks:
+  #     - id: ruff
+  #       args: [--fix]
+  #     - id: ruff-format
+
+  - repo: local
+    hooks:
+      - id: test-imports
+        name: Test imports
+        entry: python -c "import sys; [__import__(x) for x in ['src.main', 'src.scrapers', 'src.neo4j_integration', 'src.deduplication', 'src.models', 'src.master_data', 'src.langgraph_orchestrator']]"
+        language: system
+        pass_filenames: false 

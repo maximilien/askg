@@ -1,0 +1,30 @@
+target-version = "py311"
+
+# Line length
+line-length = 88
+
+[lint]
+select = ["ALL"]
+ignore = [
+    "E501",  # Line too long (handled by formatter)
+    "E731",  # Do not assign a lambda expression, use a def
+    "F401",  # Imported but unused (allow for __init__.py files)
+    "F403",  # 'from module import *' used; unable to detect undefined names
+    "F405",  # Name may be undefined, or defined from star imports
+    "ANN401", # Dynamically typed expressions (typing.Any) are disallowed
+    "BLE001", # Allow broad exception catching
+]
+
+# Exclude files and directories
+exclude = [
+    ".git",
+    ".venv",
+    "__pycache__",
+    ".pytest_cache",
+    "build",
+    "dist",
+    "*.egg-info",
+    "data",
+    "logs",
+    "docs",
+] 
