@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "askg"
+version = "0.1.0"
+description = "Agent-Server Knowledge Graph"
+authors = [{name = "ASKG Team"}]
+readme = "README.md"
+requires-python = ">=3.8"
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = [
+    "-v",
+    "--tb=short",
+    "--color=yes",
+    "--durations=10"
+] 

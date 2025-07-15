@@ -10,7 +10,7 @@ def test_config():
     """Test loading both local and remote configurations"""
     
     # Test config loading
-    with open('config.yaml', 'r') as f:
+    with open('.config.yaml', 'r') as f:
         config = yaml.safe_load(f)
     
     print("📋 Testing Neo4j configuration loading...")

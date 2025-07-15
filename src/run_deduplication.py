@@ -165,7 +165,7 @@ async def main():
         
     except Exception as e:
         print(f"❌ Error loading to Neo4j: {e}")
-        print("Make sure Neo4j is running with the correct credentials in config.yaml")
+        print("Make sure Neo4j is running with the correct credentials in .config.yaml")
     
     print("\n🎉 Deduplication and loading completed!")
 

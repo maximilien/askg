@@ -11,7 +11,7 @@ from models import (
 
 
 class Neo4jManager:
-    def __init__(self, config_path: str = "config.yaml", instance: str = "local"):
+    def __init__(self, config_path: str = ".config.yaml", instance: str = "local"):
         with open(config_path, 'r') as f:
             config = yaml.safe_load(f)
         

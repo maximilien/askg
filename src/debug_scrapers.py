@@ -79,15 +79,15 @@ async def test_github_search():
     """Test GitHub search with specific queries"""
     print("\nTesting GitHub search...")
     
-    # You'll need to set your GitHub token in config.yaml
+    # You'll need to set your GitHub token in .config.yaml
     import yaml
     try:
-        with open('config.yaml', 'r') as f:
+        with open('.config.yaml', 'r') as f:
             config = yaml.safe_load(f)
         
         github_token = config.get('github', {}).get('token')
         if not github_token:
-            print("No GitHub token found in config.yaml")
+            print("No GitHub token found in .config.yaml")
             return
         
         headers = {'Authorization': f'token {github_token}'}
