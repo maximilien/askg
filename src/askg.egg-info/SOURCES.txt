@@ -20,6 +20,7 @@ src/scrapers.py
 src/askg.egg-info/PKG-INFO
 src/askg.egg-info/SOURCES.txt
 src/askg.egg-info/dependency_links.txt
+src/askg.egg-info/requires.txt
 src/askg.egg-info/top_level.txt
 tests/test_config.py
 tests/test_direct_glama.py

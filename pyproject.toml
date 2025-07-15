@@ -8,7 +8,7 @@ version = "0.1.0"
 description = "Agent-Server Knowledge Graph"
 authors = [{name = "ASKG Team"}]
 readme = "README.md"
-requires-python = ">=3.8"
+requires-python = ">=3.10"
 dependencies = [
     "pydantic>=2.0.0",
     "neo4j>=5.0.0",

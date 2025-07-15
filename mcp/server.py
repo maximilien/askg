@@ -344,48 +344,42 @@ class MCPServerProtocol:
             }
 
 
-async def main():
-    """Main entry point for the MCP server"""
+def main():
     import argparse
-    
+    import aiohttp
+    from aiohttp import web
+
     parser = argparse.ArgumentParser(description='ASKG MCP Server')
     parser.add_argument('--config', default='.config.yaml', help='Configuration file path')
     parser.add_argument('--instance', default='local', help='Neo4j instance to use')
     parser.add_argument('--port', type=int, default=8080, help='Server port')
-    
     args = parser.parse_args()
-    
-    # Initialize the ASKG MCP server
-    with ASKGMCPServer(args.config, args.instance) as server:
-        protocol = MCPServerProtocol(server)
-        
-        # Simple HTTP server for demonstration
-        # In production, you'd use a proper MCP server implementation
-        import aiohttp
-        from aiohttp import web
-        
-        async def handle_request(request):
-            try:
-                data = await request.json()
-                response = await protocol.handle_request(data)
-                return web.json_response(response)
-            except Exception as e:
-                logger.error(f"Error handling request: {e}")
-                return web.json_response({
-                    'jsonrpc': '2.0',
-                    'id': data.get('id') if 'data' in locals() else None,
-                    'error': {
-                        'code': -32603,
-                        'message': str(e)
-                    }
-                })
-        
-        app = web.Application()
-        app.router.add_post('/', handle_request)
-        
-        logger.info(f"Starting ASKG MCP server on port {args.port}")
-        web.run_app(app, port=args.port)
 
+    # Initialize the ASKG MCP server
+    askg_server = ASKGMCPServer(args.config, args.instance)
+    protocol = MCPServerProtocol(askg_server)
+
+    async def handle_request(request):
+        try:
+            data = await request.json()
+            response = await protocol.handle_request(data)
+            return web.json_response(response)
+        except Exception as e:
+            logger.error(f"Error handling request: {e}")
+            return web.json_response({
+                'jsonrpc': '2.0',
+                'id': data.get('id') if 'data' in locals() else None,
+                'error': {
+                    'code': -32603,
+                    'message': str(e)
+                }
+            })
+
+    app = web.Application()
+    app.router.add_post('/', handle_request)
+
+    logger.info(f"Starting ASKG MCP server on port {args.port}")
+    web.run_app(app, port=args.port)
 
 if __name__ == '__main__':
-    asyncio.run(main()) 
+    main() 

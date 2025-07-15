@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>askg AI Agent</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header with hamburger menu -->
+        <header class="header">
+            <div class="header-left">
+                <button class="hamburger-menu" id="hamburgerMenu">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <h1 class="title">askg AI Agent</h1>
+            </div>
+        </header>
+
+        <!-- Hamburger menu dropdown -->
+        <div class="menu-dropdown" id="menuDropdown">
+            <div class="menu-item" id="newChat">
+                <i class="fas fa-plus"></i>
+                New Chat
+            </div>
+            <div class="menu-item" id="saveChat">
+                <i class="fas fa-save"></i>
+                Save Chat
+            </div>
+            <div class="menu-divider"></div>
+            <div class="menu-item" id="settings">
+                <i class="fas fa-cog"></i>
+                Settings
+            </div>
+        </div>
+
+        <!-- Main content area -->
+        <div class="main-content">
+            <!-- Chat history sidebar (20% width, collapsible) -->
+            <div class="chat-history-sidebar" id="chatHistorySidebar">
+                <div class="sidebar-header">
+                    <h3>Chat History</h3>
+                    <button class="collapse-btn" id="collapseSidebar">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                </div>
+                <div class="chat-history-list" id="chatHistoryList">
+                    <!-- Chat history items will be populated here -->
+                </div>
+            </div>
+
+            <!-- Main chat area (middle section) -->
+            <div class="chat-main-area">
+                <div class="chat-messages" id="chatMessages">
+                    <!-- Messages will be populated here -->
+                </div>
+                <div class="chat-input-container">
+                    <div class="chat-input-wrapper">
+                        <textarea 
+                            id="chatInput" 
+                            placeholder="Type your message here..."
+                            rows="1"
+                        ></textarea>
+                        <button class="send-button" id="sendButton">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Knowledge graph sidebar (25% width) -->
+            <div class="knowledge-graph-sidebar">
+                <div class="sidebar-header">
+                    <h3>Knowledge Graph</h3>
+                </div>
+                <div class="knowledge-graph-content" id="knowledgeGraphContent">
+                    <div class="graph-placeholder">
+                        <i class="fas fa-project-diagram"></i>
+                        <p>Knowledge Graph Visualization</p>
+                        <p class="graph-description">
+                            This area will display the askg knowledge graph representation 
+                            showing MCP servers, relationships, and connections.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="app.js"></script>
+</body>
+</html> 
