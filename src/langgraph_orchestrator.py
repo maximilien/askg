@@ -175,8 +175,15 @@ class PipelineBuilder:
             "categories": [],
             "operations": [],
             "keywords": [],
-            "data_flow": []
+            "data_flow": [],
+            "task_text": task_lower  # Add full task text for keyword search
         }
+        
+        # Crypto/Finance specific detection
+        crypto_keywords = ["crypto", "cryptocurrency", "bitcoin", "coin", "trading", "finance", "market", "binance", "coinmarketcap", "coingecko", "blockchain", "defi", "trading", "price", "wallet"]
+        if any(word in task_lower for word in crypto_keywords):
+            required_capabilities["categories"].append(ServerCategory.API_INTEGRATION)
+            required_capabilities["keywords"].extend([word for word in crypto_keywords if word in task_lower])
         
         # Category detection
         if any(word in task_lower for word in ["database", "sql", "query", "data"]):
@@ -213,14 +220,139 @@ class PipelineBuilder:
         return required_capabilities
     
     def find_compatible_servers(self, required_capabilities: Dict[str, Any]) -> List[MCPServer]:
-        """Find MCP servers that match the required capabilities"""
-        print(f"🔍 Searching for servers with capabilities: {required_capabilities}")
+        """Find MCP servers that match the required capabilities using Neo4j graph"""
+        print(f"🔍 Searching Neo4j graph for servers with capabilities: {required_capabilities}")
         
-        # Mock server selection based on categories
         compatible_servers = []
         
-        # In a real implementation, this would query Neo4j
-        # For now, we'll create mock servers based on requirements
+        try:
+            # Query Neo4j for servers matching the required capabilities
+            with self.neo4j.driver.session() as session:
+                # Build cypher query based on required capabilities
+                where_clauses = []
+                
+                # Add category filters
+                if required_capabilities["categories"]:
+                    category_values = [cat.value for cat in required_capabilities["categories"]]
+                    where_clauses.append(f"ANY(cat IN s.categories WHERE cat IN {category_values})")
+                
+                # Add operation filters
+                if required_capabilities["operations"]:
+                    operation_values = [op.value for op in required_capabilities["operations"]]
+                    where_clauses.append(f"ANY(op IN s.operations WHERE op IN {operation_values})")
+                
+                # Special handling for crypto-related searches
+                task_keywords = ["crypto", "bitcoin", "coin", "trading", "finance", "market", "binance", "coinmarketcap", "coingecko", "blockchain", "defi", "price", "wallet"]
+                task_text = required_capabilities.get("task_text", "")
+                for keyword in task_keywords:
+                    if keyword in task_text:
+                        where_clauses.append(f"(toLower(s.name) CONTAINS '{keyword}' OR toLower(s.description) CONTAINS '{keyword}')")
+                        break
+                
+                # Build the complete query with prioritization
+                keyword_match = None
+                category_match = None
+                
+                # Check if we have keyword matches (higher priority)
+                for keyword in task_keywords:
+                    if keyword in task_text:
+                        keyword_match = f"(toLower(s.name) CONTAINS '{keyword}' OR toLower(s.description) CONTAINS '{keyword}')"
+                        break
+                
+                # Check if we have category matches (lower priority)
+                if required_capabilities["categories"] or required_capabilities["operations"]:
+                    category_clauses = []
+                    if required_capabilities["categories"]:
+                        category_values = [cat.value for cat in required_capabilities["categories"]]
+                        category_clauses.append(f"ANY(cat IN s.categories WHERE cat IN {category_values})")
+                    if required_capabilities["operations"]:
+                        operation_values = [op.value for op in required_capabilities["operations"]]
+                        category_clauses.append(f"ANY(op IN s.operations WHERE op IN {operation_values})")
+                    category_match = " OR ".join(category_clauses)
+                
+                if keyword_match:
+                    # Prioritize keyword matches first
+                    cypher = f"""
+                    MATCH (s:Server)
+                    WHERE {keyword_match}
+                    RETURN s.id as id, s.name as name, s.description as description, 
+                           s.categories as categories, s.operations as operations,
+                           s.registry_source as registry_source, s.repository as repository
+                    LIMIT 10
+                    """
+                elif category_match:
+                    cypher = f"""
+                    MATCH (s:Server)
+                    WHERE {category_match}
+                    RETURN s.id as id, s.name as name, s.description as description, 
+                           s.categories as categories, s.operations as operations,
+                           s.registry_source as registry_source, s.repository as repository
+                    LIMIT 10
+                    """
+                else:
+                    # Fallback: get some general servers
+                    cypher = """
+                    MATCH (s:Server)
+                    WHERE s.categories IS NOT NULL AND size(s.categories) > 0
+                    RETURN s.id as id, s.name as name, s.description as description, 
+                           s.categories as categories, s.operations as operations,
+                           s.registry_source as registry_source, s.repository as repository
+                    LIMIT 5
+                    """
+                
+                print(f"🔍 Neo4j Query: {cypher}")
+                result = session.run(cypher)
+                
+                # Convert Neo4j results to MCPServer objects
+                for record in result:
+                    # Convert string categories back to ServerCategory enums
+                    categories = []
+                    if record["categories"]:
+                        for cat_str in record["categories"]:
+                            try:
+                                categories.append(ServerCategory(cat_str))
+                            except ValueError:
+                                categories.append(ServerCategory.OTHER)
+                    
+                    # Convert string operations back to OperationType enums
+                    operations = []
+                    if record["operations"]:
+                        for op_str in record["operations"]:
+                            try:
+                                operations.append(OperationType(op_str))
+                            except ValueError:
+                                operations.append(OperationType.EXECUTE)
+                    
+                    # Create MCPServer object
+                    server = MCPServer(
+                        id=record["id"] or "unknown",
+                        name=record["name"] or "Unknown Server",
+                        description=record["description"] or "No description",
+                        categories=categories,
+                        operations=operations,
+                        registry_source=record["registry_source"] or "unknown",
+                        repository=record["repository"]
+                    )
+                    compatible_servers.append(server)
+                
+        except Exception as e:
+            print(f"❌ Error querying Neo4j: {str(e)}")
+            print(f"🔄 Falling back to mock servers...")
+            
+            # Fallback to mock servers if Neo4j query fails
+            return self._get_mock_servers(required_capabilities)
+        
+        print(f"✅ Found {len(compatible_servers)} compatible servers from Neo4j")
+        for server in compatible_servers:
+            print(f"   - {server.name} ({server.id})")
+            print(f"     Categories: {[cat.value for cat in server.categories]}")
+            print(f"     Repository: {server.repository}")
+        
+        return compatible_servers
+    
+    def _get_mock_servers(self, required_capabilities: Dict[str, Any]) -> List[MCPServer]:
+        """Fallback method to get mock servers if Neo4j query fails"""
+        compatible_servers = []
         
         if ServerCategory.DATABASE in required_capabilities["categories"]:
             compatible_servers.append(MCPServer(
@@ -251,30 +383,6 @@ class PipelineBuilder:
                 operations=[OperationType.TRANSFORM, OperationType.ANALYZE],
                 registry_source="mcp.so"
             ))
-        
-        if ServerCategory.FILE_SYSTEM in required_capabilities["categories"]:
-            compatible_servers.append(MCPServer(
-                id="file_server",
-                name="File System MCP Server",
-                description="File operations and storage",
-                categories=[ServerCategory.FILE_SYSTEM],
-                operations=[OperationType.READ, OperationType.WRITE],
-                registry_source="github"
-            ))
-        
-        if ServerCategory.AI_ML in required_capabilities["categories"]:
-            compatible_servers.append(MCPServer(
-                id="openai_server",
-                name="OpenAI MCP Server",
-                description="AI/ML model integration",
-                categories=[ServerCategory.AI_ML],
-                operations=[OperationType.EXECUTE, OperationType.ANALYZE],
-                registry_source="glama"
-            ))
-        
-        print(f"✅ Found {len(compatible_servers)} compatible servers")
-        for server in compatible_servers:
-            print(f"   - {server.name} ({server.id})")
         
         return compatible_servers
     
