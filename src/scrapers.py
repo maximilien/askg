@@ -323,7 +323,8 @@ class GitHubScraper(BaseScraper):
             pass
         
         # Fallback to description and topics
-        description = repo.get('description', '').lower()
+        description = repo.get('description')
+        description = description.lower() if isinstance(description, str) else ''
         topics = repo.get('topics', [])
         
         return (any(topic in ['mcp', 'model-context-protocol'] for topic in topics) or
