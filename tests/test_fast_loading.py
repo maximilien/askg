@@ -5,6 +5,7 @@ Test fast loading mode with a subset of servers
 
 import json
 import asyncio
+import pytest
 from pathlib import Path
 from datetime import datetime
 from typing import List
@@ -41,8 +42,24 @@ def load_test_servers(count: int = 100) -> List[MCPServer]:
     return servers
 
 
+def check_neo4j_available():
+    """Check if Neo4j is available for testing"""
+    try:
+        with Neo4jManager(instance="local") as neo4j:
+            # Try a simple query to test connection
+            with neo4j.driver.session() as session:
+                session.run("RETURN 1 as test")
+        return True
+    except Exception:
+        return False
+
+
 async def test_loading_modes():
     """Test both standard and fast loading modes"""
+    # Skip test if Neo4j is not available
+    if not check_neo4j_available():
+        pytest.skip("Neo4j not available - skipping Neo4j loading tests")
+    
     print("🧪 Testing Neo4j loading modes...")
     
     # Load test servers

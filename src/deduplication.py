@@ -72,7 +72,10 @@ class ServerDeduplicator:
         print(f"✅ Deduplication phase 1 complete:")
         print(f"   • Unique servers: {len(unique_servers):,}")
         print(f"   • Duplicates found: {duplicates_found:,}")
-        print(f"   • Deduplication rate: {(duplicates_found / len(servers) * 100):.1f}%")
+        if len(servers) > 0:
+            print(f"   • Deduplication rate: {(duplicates_found / len(servers) * 100):.1f}%")
+        else:
+            print(f"   • Deduplication rate: N/A (no servers to deduplicate)")
         print()
         
         # Post-process: merge similar servers with high confidence
@@ -86,7 +89,10 @@ class ServerDeduplicator:
         print(f"   • Final unique servers: {len(final_servers):,}")
         print(f"   • Additional merges: {additional_merges:,}")
         print(f"   • Total removed: {total_removed:,}")
-        print(f"   • Overall deduplication rate: {(total_removed / len(servers) * 100):.1f}%")
+        if len(servers) > 0:
+            print(f"   • Overall deduplication rate: {(total_removed / len(servers) * 100):.1f}%")
+        else:
+            print(f"   • Overall deduplication rate: N/A (no servers to deduplicate)")
         
         return final_servers
     

@@ -23,7 +23,7 @@ from models import (
 
 
 class ConfigManager:
-    def __init__(self, config_path: str = "config.yaml"):
+    def __init__(self, config_path: str = ".config.yaml"):
         with open(config_path, 'r') as f:
             self.config = yaml.safe_load(f)
     
@@ -1331,7 +1331,7 @@ class MCPMarketScraper(BaseScraper):
 
 
 class ScrapingOrchestrator:
-    def __init__(self, config_path: str = "config.yaml"):
+    def __init__(self, config_path: str = ".config.yaml"):
         self.config = ConfigManager(config_path)
         self.storage = StorageManager(self.config)
         
