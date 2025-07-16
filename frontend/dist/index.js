@@ -27,7 +27,7 @@ app.use(express_1.default.static(path_1.default.join(__dirname, '../public')));
 app.get('/', (req, res) => {
     res.sendFile(path_1.default.join(__dirname, '../public/index.html'));
 });
-async function callMCPServer(prompt) {
+async function callMCPServer(prompt, maxResults = 20) {
     try {
         const response = await fetch(`${MCP_SERVER_URL}/`, {
             method: 'POST',
@@ -40,7 +40,7 @@ async function callMCPServer(prompt) {
                 method: 'search_servers',
                 params: {
                     prompt: prompt,
-                    limit: 10,
+                    limit: maxResults,
                     min_confidence: 0.5
                 }
             })
@@ -60,7 +60,8 @@ io.on('connection', (socket) => {
     console.log('User connected:', socket.id);
     socket.on('chat_message', async (data) => {
         console.log('Received message:', data);
-        const mcpResult = await callMCPServer(data.content);
+        const maxResults = data.maxResults || 20;
+        const mcpResult = await callMCPServer(data.content, maxResults);
         console.log('MCP server result:', mcpResult);
         const response = {
             id: Date.now().toString(),

@@ -6,6 +6,7 @@
     <title>askg AI Agent</title>
     <link rel="stylesheet" href="styles.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://d3js.org/d3.v7.min.js"></script>
 </head>
 <body>
     <div class="app-container">
@@ -18,23 +19,6 @@
                 <h1 class="title">askg AI Agent</h1>
             </div>
         </header>
-
-        <!-- Hamburger menu dropdown -->
-        <div class="menu-dropdown" id="menuDropdown">
-            <div class="menu-item" id="newChat">
-                <i class="fas fa-plus"></i>
-                New Chat
-            </div>
-            <div class="menu-item" id="saveChat">
-                <i class="fas fa-save"></i>
-                Save Chat
-            </div>
-            <div class="menu-divider"></div>
-            <div class="menu-item" id="settings">
-                <i class="fas fa-cog"></i>
-                Settings
-            </div>
-        </div>
 
         <!-- Main content area -->
         <div class="main-content">
@@ -83,15 +67,70 @@
                     <h3>Knowledge Graph</h3>
                 </div>
                 <div class="knowledge-graph-content" id="knowledgeGraphContent">
-                    <div class="graph-placeholder">
-                        <i class="fas fa-project-diagram"></i>
-                        <p>Knowledge Graph Visualization</p>
-                        <p class="graph-description">
-                            This area will display the askg knowledge graph representation 
-                            showing MCP servers, relationships, and connections.
-                        </p>
+                    <!-- Graph visualization container -->
+                    <div class="graph-visualization" id="graphVisualization">
+                        <div class="graph-placeholder">
+                            <i class="fas fa-project-diagram"></i>
+                            <p>Knowledge Graph Visualization</p>
+                            <p class="graph-description">
+                                This area will display the askg knowledge graph representation 
+                                showing MCP servers, relationships, and connections.
+                            </p>
+                        </div>
+                    </div>
+                    <!-- Server list container -->
+                    <div class="server-list-container" id="serverListContainer">
+                        <!-- Server cards will be populated here -->
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hamburger menu dropdown OUTSIDE app-container -->
+    <div class="menu-dropdown" id="menuDropdown">
+        <div class="menu-item" id="newChat">
+            <i class="fas fa-plus"></i>
+            New Chat
+        </div>
+        <div class="menu-item" id="clearCurrentChat">
+            <i class="fas fa-eraser"></i>
+            Clear Current Chat
+        </div>
+        <div class="menu-item" id="clearHistory">
+            <i class="fas fa-trash"></i>
+            Clear All History
+        </div>
+        <div class="menu-item" id="clearEverything">
+            <i class="fas fa-broom"></i>
+            Clear Everything
+        </div>
+        <div class="menu-divider"></div>
+        <div class="menu-item" id="settings">
+            <i class="fas fa-cog"></i>
+            Settings
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div class="modal-overlay" id="settingsModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Settings</h3>
+                <button class="modal-close" id="closeSettings">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="setting-item">
+                    <label for="maxResults">Max Results:</label>
+                    <input type="number" id="maxResults" value="20" min="1" max="100">
+                    <small>Maximum number of MCP servers to return (1-100)</small>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="cancelSettings">Cancel</button>
+                <button class="btn btn-primary" id="saveSettings">Save</button>
             </div>
         </div>
     </div>
