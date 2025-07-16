@@ -31,7 +31,7 @@ app.get('/', (req, res) => {
 });
 
 // Function to call MCP server
-async function callMCPServer(prompt: string) {
+async function callMCPServer(prompt: string, maxResults: number = 20) {
   try {
     const response = await fetch(`${MCP_SERVER_URL}/`, {
       method: 'POST',
@@ -44,7 +44,7 @@ async function callMCPServer(prompt: string) {
         method: 'search_servers',
         params: {
           prompt: prompt,
-          limit: 10,
+          limit: maxResults,
           min_confidence: 0.5
         }
       })
@@ -71,7 +71,8 @@ io.on('connection', (socket) => {
     console.log('Received message:', data);
     
     // Call MCP server to search for relevant servers
-    const mcpResult = await callMCPServer(data.content);
+    const maxResults = data.maxResults || 20;
+    const mcpResult = await callMCPServer(data.content, maxResults);
     console.log('MCP server result:', mcpResult);
     
     // Send response back to client
