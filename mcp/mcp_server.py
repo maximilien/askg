@@ -92,13 +92,39 @@ class ServerSearchResult(BaseModel):
 class ASKGMCPServer:
     """MCP Server for ASKG semantic search"""
     
-    def __init__(self, config_path: str = ".config.yaml", instance: str = "local"):
+    def __init__(self, config_path: str = ".config.yaml", instance: str = None):
         """Initialize the MCP server with Neo4j connection"""
         self.config_path = config_path
         self.instance = instance
         self.driver = None
         self._load_config()
+        self._auto_select_instance()
         self._connect_to_neo4j()
+
+    def _auto_select_instance(self):
+        # If instance is explicitly set, use it
+        if self.instance:
+            return
+        # Try remote first
+        try:
+            remote_config = self.config['neo4j'].get('remote')
+            if remote_config:
+                from neo4j import GraphDatabase
+                driver = GraphDatabase.driver(
+                    remote_config['uri'],
+                    auth=(remote_config['user'], remote_config['password'])
+                )
+                with driver.session() as session:
+                    session.run("RETURN 1")
+                self.instance = 'remote'
+                driver.close()
+                logger.info("Auto-selected remote Neo4j instance.")
+                return
+        except Exception as e:
+            logger.warning(f"Remote Neo4j not available: {e}")
+        # Fallback to local
+        self.instance = 'local'
+        logger.info("Falling back to local Neo4j instance.")
     
     def _load_config(self):
         """Load configuration from YAML file"""
@@ -163,6 +189,22 @@ class ASKGMCPServer:
                 mcp_server = self._convert_to_mcp_server(server_record)
                 if mcp_server:
                     mcp_servers.append(mcp_server)
+            
+            # If no servers found in database, do not use mock data
+            if not mcp_servers:
+                logger.info("No servers found in database, returning empty result (no mock data)")
+                search_metadata = {
+                    "search_terms": search_terms,
+                    "prompt": request.prompt,
+                    "instance": self.instance,
+                    "search_strategy": "semantic_multi_faceted",
+                    "mock_data": False
+                }
+                return ServerSearchResult(
+                    servers=[],
+                    total_found=0,
+                    search_metadata=search_metadata
+                )
             
             # Create search metadata
             search_metadata = {
@@ -327,11 +369,14 @@ class ASKGMCPServer:
             # Convert registry source
             registry_source = RegistrySource.GITHUB  # Default to GITHUB
             if server_data.get('registry_source'):
-                try:
-                    registry_source = RegistrySource(server_data['registry_source'])
-                except ValueError:
-                    # If the registry source is not recognized, use GITHUB as default
-                    pass
+                raw = server_data['registry_source']
+                mapping = {
+                    'github': RegistrySource.GITHUB,
+                    'glama': RegistrySource.GLAMA,
+                    'mcp.so': RegistrySource.MCP_SO,
+                    'mcpmarket.com': RegistrySource.MCP_MARKET,
+                }
+                registry_source = mapping.get(str(raw).lower(), RegistrySource.GITHUB)
             
             # Create MCPServer object
             return MCPServer(

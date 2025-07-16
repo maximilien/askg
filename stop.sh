@@ -11,12 +11,12 @@ MCP_PID=$(sed -n '2p' .askg.pid)
 FRONTEND_PID=$(sed -n '3p' .askg.pid)
 
 # Handle Neo4j based on type
-if [ "$NEO4J_TYPE" = "NEO4J_DESKTOP" ]; then
+if [ "$NEO4J_TYPE" = "NEO4J_LOCAL" ]; then
     echo "Neo4j Desktop detected - please stop it manually if needed."
+elif [ "$NEO4J_TYPE" = "NEO4J_REMOTE" ]; then
+    echo "Remote Neo4j instance detected - connection will be closed automatically."
 else
-    echo "Stopping Neo4j container (ID $NEO4J_TYPE)..."
-    docker stop askg-neo4j 2>/dev/null && echo "Neo4j container stopped." || echo "Neo4j container not running."
-    docker rm askg-neo4j 2>/dev/null && echo "Neo4j container removed." || echo "Neo4j container not found."
+    echo "Unknown Neo4j type: $NEO4J_TYPE"
 fi
 
 echo "Stopping MCP server (PID $MCP_PID)..."
