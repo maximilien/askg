@@ -7,6 +7,8 @@ class AskGChatApp {
         this.currentChatId = null;
         this.isTyping = false;
         this.nextChatId = 1;
+        this.currentServers = null; // Store current servers for redrawing
+        this.resizeTimeout = null; // For debouncing resize events
         
         this.initializeElements();
         this.initializeSocket();
@@ -30,6 +32,7 @@ class AskGChatApp {
         this.chatMessages = document.getElementById('chatMessages');
         this.chatInput = document.getElementById('chatInput');
         this.sendButton = document.getElementById('sendButton');
+        this.restoreSidebarBtn = document.getElementById('restoreSidebarBtn');
         this.knowledgeGraphContent = document.getElementById('knowledgeGraphContent');
         this.resizeDivider = document.getElementById('resizeDivider');
         this.knowledgeGraphSidebar = document.getElementById('knowledgeGraphSidebar');
@@ -165,6 +168,11 @@ class AskGChatApp {
             this.toggleSidebar();
         });
 
+        // Restore sidebar
+        this.restoreSidebarBtn.addEventListener('click', () => {
+            this.toggleSidebar();
+        });
+
         // Chat input
         this.chatInput.addEventListener('input', () => {
             this.autoResizeTextarea();
@@ -214,10 +222,15 @@ class AskGChatApp {
     toggleSidebar() {
         this.chatHistorySidebar.classList.toggle('collapsed');
         const icon = this.collapseSidebarBtn.querySelector('i');
+        
         if (this.chatHistorySidebar.classList.contains('collapsed')) {
+            // Sidebar is collapsed - show restore button and update collapse button
             icon.className = 'fas fa-chevron-right';
+            this.restoreSidebarBtn.style.display = 'block';
         } else {
+            // Sidebar is expanded - hide restore button and update collapse button
             icon.className = 'fas fa-chevron-left';
+            this.restoreSidebarBtn.style.display = 'none';
         }
     }
 
@@ -581,8 +594,12 @@ class AskGChatApp {
     displayMCPServers(result) {
         console.log('displayMCPServers called with:', result);
         
+        // Store the servers data for potential redrawing
+        this.currentServers = result.servers || [];
+        
         if (!result || !result.servers || result.servers.length === 0) {
             console.log('No servers found, showing empty state');
+            this.currentServers = [];
             this.knowledgeGraphContent.innerHTML = `
                 <div class="graph-visualization" id="graphVisualization">
                     <div class="no-results">
@@ -1097,6 +1114,9 @@ class AskGChatApp {
             this.resizeDivider.classList.remove('resizing');
             document.body.style.cursor = '';
             document.body.style.userSelect = '';
+            
+            // Redraw the graph visualization after resize
+            this.redrawGraphVisualization();
         };
 
         // Mouse events
@@ -1119,6 +1139,37 @@ class AskGChatApp {
         this.resizeDivider.addEventListener('selectstart', (e) => {
             e.preventDefault();
         });
+        
+        // Add resize observer to knowledge graph container
+        this.initializeGraphResizeObserver();
+    }
+
+    redrawGraphVisualization() {
+        if (this.currentServers && this.currentServers.length > 0) {
+            console.log('Redrawing graph visualization after resize');
+            setTimeout(() => {
+                this.createGraphVisualization(this.currentServers);
+            }, 100); // Small delay to ensure resize is complete
+        }
+    }
+
+    initializeGraphResizeObserver() {
+        // Create a resize observer to watch for changes in the knowledge graph container
+        const resizeObserver = new ResizeObserver((entries) => {
+            for (const entry of entries) {
+                console.log('Knowledge graph container resized:', entry.contentRect);
+                // Debounce the redraw to avoid too many redraws
+                clearTimeout(this.resizeTimeout);
+                this.resizeTimeout = setTimeout(() => {
+                    this.redrawGraphVisualization();
+                }, 150);
+            }
+        });
+        
+        // Start observing the knowledge graph content container
+        if (this.knowledgeGraphContent) {
+            resizeObserver.observe(this.knowledgeGraphContent);
+        }
     }
 
     initializeSampleData() {
