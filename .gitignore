@@ -6,3 +6,4 @@ glama
 glama_files.csv
 .config.yaml
 .coverage*
+.askg.pid

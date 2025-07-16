@@ -27,6 +27,8 @@ class AskGChatApp {
         this.chatInput = document.getElementById('chatInput');
         this.sendButton = document.getElementById('sendButton');
         this.knowledgeGraphContent = document.getElementById('knowledgeGraphContent');
+        this.resizeDivider = document.getElementById('resizeDivider');
+        this.knowledgeGraphSidebar = document.getElementById('knowledgeGraphSidebar');
     }
 
     initializeSocket() {
@@ -46,6 +48,11 @@ class AskGChatApp {
             this.addMessage(response.content, 'ai', response.timestamp);
             this.isTyping = false;
             this.updateSendButton();
+        });
+
+        this.socket.on('mcp_servers_result', (result) => {
+            console.log('Received MCP servers:', result);
+            this.displayMCPServers(result);
         });
 
         this.socket.on('chat_cleared', () => {
@@ -113,6 +120,9 @@ class AskGChatApp {
         this.sendButton.addEventListener('click', () => {
             this.sendMessage();
         });
+
+        // Resize divider
+        this.initializeResizeDivider();
     }
 
     toggleMenu() {
@@ -149,6 +159,14 @@ class AskGChatApp {
 
         // Add user message to UI
         this.addMessage(content, 'user');
+        
+        // Show loading indicator in knowledge graph pane
+        this.knowledgeGraphContent.innerHTML = `
+            <div class="loading-indicator">
+                <i class="fas fa-spinner fa-spin"></i>
+                <p>Searching for MCP servers...</p>
+            </div>
+        `;
         
         // Send to server
         this.socket.emit('chat_message', {
@@ -335,6 +353,65 @@ class AskGChatApp {
         this.showNotification('Settings panel would open here', 'info');
     }
 
+    displayMCPServers(result) {
+        if (!result || !result.servers || result.servers.length === 0) {
+            this.knowledgeGraphContent.innerHTML = `
+                <div class="no-results">
+                    <i class="fas fa-search"></i>
+                    <p>No MCP servers found for your query.</p>
+                </div>
+            `;
+            return;
+        }
+
+        const serversHtml = result.servers.map(server => `
+            <div class="server-card">
+                <div class="server-header">
+                    <h4 class="server-name">${server.name || 'Unknown Server'}</h4>
+                    <span class="server-author">by ${server.author || 'Unknown'}</span>
+                </div>
+                <div class="server-description">
+                    ${server.description || 'No description available'}
+                </div>
+                <div class="server-meta">
+                    ${server.repository ? `<a href="${server.repository}" target="_blank" class="server-repo">
+                        <i class="fab fa-github"></i> Repository
+                    </a>` : ''}
+                    ${server.implementation_language ? `<span class="server-language">
+                        <i class="fas fa-code"></i> ${server.implementation_language}
+                    </span>` : ''}
+                    ${server.popularity_score ? `<span class="server-stars">
+                        <i class="fas fa-star"></i> ${server.popularity_score}
+                    </span>` : ''}
+                    ${server.download_count ? `<span class="server-downloads">
+                        <i class="fas fa-download"></i> ${server.download_count}
+                    </span>` : ''}
+                </div>
+                ${server.categories && server.categories.length > 0 ? `
+                    <div class="server-categories">
+                        ${server.categories.map(cat => `<span class="category-tag">${cat}</span>`).join('')}
+                    </div>
+                ` : ''}
+                ${server.installation_command ? `<div class="server-install">
+                    <span class="install-label">Install:</span>
+                    <code class="install-command">${server.installation_command}</code>
+                </div>` : ''}
+            </div>
+        `).join('');
+
+        this.knowledgeGraphContent.innerHTML = `
+            <div class="knowledge-graph-header">
+                <h3>MCP Servers Found (${result.total_found})</h3>
+                <div class="search-meta">
+                    <small>Search confidence: ${result.search_metadata?.search_strategy || 'semantic'}</small>
+                </div>
+            </div>
+            <div class="servers-list">
+                ${serversHtml}
+            </div>
+        `;
+    }
+
     showNotification(message, type = 'info') {
         // Create notification element
         const notification = document.createElement('div');
@@ -375,6 +452,63 @@ class AskGChatApp {
                 }
             }, 300);
         }, 3000);
+    }
+
+    initializeResizeDivider() {
+        let isResizing = false;
+        let startX = 0;
+        let startWidth = 0;
+
+        const startResize = (e) => {
+            isResizing = true;
+            startX = e.clientX;
+            startWidth = this.knowledgeGraphSidebar.offsetWidth;
+            
+            this.resizeDivider.classList.add('resizing');
+            document.body.style.cursor = 'col-resize';
+            document.body.style.userSelect = 'none';
+            
+            e.preventDefault();
+        };
+
+        const doResize = (e) => {
+            if (!isResizing) return;
+            
+            const deltaX = startX - e.clientX;
+            const newWidth = Math.max(250, Math.min(600, startWidth + deltaX));
+            
+            this.knowledgeGraphSidebar.style.width = newWidth + 'px';
+        };
+
+        const stopResize = () => {
+            if (!isResizing) return;
+            
+            isResizing = false;
+            this.resizeDivider.classList.remove('resizing');
+            document.body.style.cursor = '';
+            document.body.style.userSelect = '';
+        };
+
+        // Mouse events
+        this.resizeDivider.addEventListener('mousedown', startResize);
+        document.addEventListener('mousemove', doResize);
+        document.addEventListener('mouseup', stopResize);
+
+        // Touch events for mobile
+        this.resizeDivider.addEventListener('touchstart', (e) => {
+            startResize(e.touches[0]);
+        });
+        
+        document.addEventListener('touchmove', (e) => {
+            doResize(e.touches[0]);
+        });
+        
+        document.addEventListener('touchend', stopResize);
+
+        // Prevent text selection during resize
+        this.resizeDivider.addEventListener('selectstart', (e) => {
+            e.preventDefault();
+        });
     }
 }
 
