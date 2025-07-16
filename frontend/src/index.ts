@@ -15,6 +15,9 @@ const io = new Server(server, {
   }
 });
 
+// MCP Server configuration
+const MCP_SERVER_URL = 'http://localhost:8080';
+
 // Middleware
 app.use(helmet());
 app.use(compression());
@@ -27,23 +30,71 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, '../public/index.html'));
 });
 
+// Function to call MCP server
+async function callMCPServer(prompt: string) {
+  try {
+    const response = await fetch(`${MCP_SERVER_URL}/`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        jsonrpc: '2.0',
+        id: Date.now().toString(),
+        method: 'search_servers',
+        params: {
+          prompt: prompt,
+          limit: 10,
+          min_confidence: 0.5
+        }
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json() as any;
+    return data.result || data;
+  } catch (error) {
+    console.error('Error calling MCP server:', error);
+    return null;
+  }
+}
+
 // WebSocket connection handling
 io.on('connection', (socket) => {
   console.log('User connected:', socket.id);
 
   // Handle chat messages
-  socket.on('chat_message', (data) => {
+  socket.on('chat_message', async (data) => {
     console.log('Received message:', data);
     
-    // Echo back the message for now (in a real app, this would go to the AI agent)
+    // Call MCP server to search for relevant servers
+    const mcpResult = await callMCPServer(data.content);
+    console.log('MCP server result:', mcpResult);
+    
+    // Send response back to client
     const response = {
       id: Date.now().toString(),
       type: 'ai',
-      content: `I received your message: "${data.content}". This is a placeholder response from the askg AI agent.`,
+      content: `I found ${mcpResult?.servers?.length || 0} MCP servers related to your query: "${data.content}". Check the knowledge graph pane for details.`,
       timestamp: new Date().toISOString()
     };
     
     socket.emit('chat_response', response);
+    
+    // Send MCP server results to update knowledge graph
+    if (mcpResult && mcpResult.servers) {
+      console.log('Sending MCP servers to client:', mcpResult.servers.length, 'servers');
+      socket.emit('mcp_servers_result', {
+        servers: mcpResult.servers,
+        total_found: mcpResult.total_found,
+        search_metadata: mcpResult.search_metadata
+      });
+    } else {
+      console.log('No MCP servers to send to client');
+    }
   });
 
   // Handle new chat creation
