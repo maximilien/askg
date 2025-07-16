@@ -31,7 +31,7 @@ logger = logging.getLogger(__name__)
 class ServerSearchRequest(BaseModel):
     """Request model for server search"""
     prompt: str = Field(..., description="Search prompt describing the desired MCP servers")
-    limit: int = Field(default=10, description="Maximum number of servers to return")
+    limit: int = Field(default=20, description="Maximum number of servers to return")
     min_confidence: float = Field(default=0.5, description="Minimum confidence score for results")
 
 
