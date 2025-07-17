@@ -31,7 +31,7 @@ logger = logging.getLogger(__name__)
 class ServerSearchRequest(BaseModel):
     """Request model for server search"""
     prompt: str = Field(..., description="Search prompt describing the desired MCP servers")
-    limit: int = Field(default=10, description="Maximum number of servers to return")
+    limit: int = Field(default=20, description="Maximum number of servers to return")
     min_confidence: float = Field(default=0.5, description="Minimum confidence score for results")
 
 
@@ -42,17 +42,129 @@ class ServerSearchResult(BaseModel):
     search_metadata: Dict[str, Any] = Field(default_factory=dict, description="Search metadata")
 
 
+def get_mock_servers(prompt: str) -> List[MCPServer]:
+    """Return mock MCP servers for testing"""
+    mock_servers = [
+        MCPServer(
+            id="mock_github_anthropic_claude-desktop",
+            name="claude-desktop",
+            description="Claude Desktop is a desktop application that brings Claude's capabilities to your computer. It includes MCP server integration for enhanced functionality.",
+            version="1.0.0",
+            author="anthropic",
+            license="MIT",
+            homepage="https://claude.ai/desktop",
+            repository="https://github.com/anthropics/claude-desktop",
+            implementation_language="TypeScript",
+            installation_command="npm install -g @anthropic-ai/claude-desktop",
+            categories=[ServerCategory.COMMUNICATION, ServerCategory.DEVELOPMENT_TOOLS],
+            operations=[OperationType.READ, OperationType.WRITE, OperationType.EXECUTE],
+            data_types=["text", "image", "file"],
+            registry_source=RegistrySource.GITHUB,
+            source_url="https://github.com/anthropics/claude-desktop",
+            last_updated=None,
+            popularity_score=1500,
+            download_count=50000,
+            raw_metadata={"mock": True, "search_score": 0.95}
+        ),
+        MCPServer(
+            id="mock_github_modelcontextprotocol_mcp-server-sqlite",
+            name="mcp-server-sqlite",
+            description="An MCP server that provides SQLite database access. Allows Claude to read from and write to SQLite databases through the Model Context Protocol.",
+            version="0.1.0",
+            author="modelcontextprotocol",
+            license="MIT",
+            homepage="https://github.com/modelcontextprotocol/mcp-server-sqlite",
+            repository="https://github.com/modelcontextprotocol/mcp-server-sqlite",
+            implementation_language="Python",
+            installation_command="pip install mcp-server-sqlite",
+            categories=[ServerCategory.DATABASE, ServerCategory.DATA_PROCESSING],
+            operations=[OperationType.READ, OperationType.WRITE, OperationType.QUERY],
+            data_types=["sql", "table", "json"],
+            registry_source=RegistrySource.GITHUB,
+            source_url="https://github.com/modelcontextprotocol/mcp-server-sqlite",
+            last_updated=None,
+            popularity_score=800,
+            download_count=15000,
+            raw_metadata={"mock": True, "search_score": 0.88}
+        ),
+        MCPServer(
+            id="mock_github_modelcontextprotocol_mcp-server-filesystem",
+            name="mcp-server-filesystem",
+            description="An MCP server that provides filesystem access. Allows Claude to read, write, and manage files on the local filesystem through the Model Context Protocol.",
+            version="0.2.0",
+            author="modelcontextprotocol",
+            license="MIT",
+            homepage="https://github.com/modelcontextprotocol/mcp-server-filesystem",
+            repository="https://github.com/modelcontextprotocol/mcp-server-filesystem",
+            implementation_language="Python",
+            installation_command="pip install mcp-server-filesystem",
+            categories=[ServerCategory.FILE_SYSTEM, ServerCategory.DEVELOPMENT_TOOLS],
+            operations=[OperationType.READ, OperationType.WRITE, OperationType.EXECUTE],
+            data_types=["file", "directory", "text", "binary"],
+            registry_source=RegistrySource.GITHUB,
+            source_url="https://github.com/modelcontextprotocol/mcp-server-filesystem",
+            last_updated=None,
+            popularity_score=1200,
+            download_count=25000,
+            raw_metadata={"mock": True, "search_score": 0.92}
+        )
+    ]
+    
+    # Filter servers based on prompt (simple keyword matching)
+    prompt_lower = prompt.lower()
+    filtered_servers = []
+    
+    for server in mock_servers:
+        score = 0.0
+        
+        # Check name
+        if prompt_lower in server.name.lower():
+            score += 3.0
+        
+        # Check description
+        if server.description and prompt_lower in server.description.lower():
+            score += 2.0
+        
+        # Check categories
+        for category in server.categories:
+            if prompt_lower in category.value.lower():
+                score += 1.5
+        
+        # Check operations
+        for operation in server.operations:
+            if prompt_lower in operation.value.lower():
+                score += 1.0
+        
+        # Check implementation language
+        if server.implementation_language and prompt_lower in server.implementation_language.lower():
+            score += 0.5
+        
+        # Add server if it has any relevance
+        if score > 0:
+            server.raw_metadata["search_score"] = score
+            filtered_servers.append(server)
+    
+    # If no specific matches, return all servers
+    if not filtered_servers:
+        return mock_servers
+    
+    # Sort by relevance score and return top results
+    filtered_servers.sort(key=lambda x: x.raw_metadata.get("search_score", 0), reverse=True)
+    return filtered_servers[:3]
+
+
 class ASKGMCPServer:
     """MCP Server for ASKG semantic search"""
     
-    def __init__(self, config_path: str = ".config.yaml", instance: str = "local"):
+    def __init__(self, config_path: str = ".config.yaml", instance: str = None):
         """Initialize the MCP server with Neo4j connection"""
         self.config_path = config_path
         self.instance = instance
         self.driver = None
         self._load_config()
+        self._auto_select_instance()
         self._connect_to_neo4j()
-    
+
     def _load_config(self):
         """Load configuration from YAML file"""
         try:
@@ -64,6 +176,31 @@ class ASKGMCPServer:
         except yaml.YAMLError as e:
             logger.error(f"Error parsing configuration file: {e}")
             raise
+    
+    def _auto_select_instance(self):
+        # If instance is explicitly set, use it
+        if self.instance:
+            return
+        # Try remote first
+        try:
+            remote_config = self.config['neo4j'].get('remote')
+            if remote_config:
+                from neo4j import GraphDatabase
+                driver = GraphDatabase.driver(
+                    remote_config['uri'],
+                    auth=(remote_config['user'], remote_config['password'])
+                )
+                with driver.session() as session:
+                    session.run("RETURN 1")
+                self.instance = 'remote'
+                driver.close()
+                logger.info("Auto-selected remote Neo4j instance.")
+                return
+        except Exception as e:
+            logger.warning(f"Remote Neo4j not available: {e}")
+        # Fallback to local
+        self.instance = 'local'
+        logger.info("Falling back to local Neo4j instance.")
     
     def _connect_to_neo4j(self):
         """Establish connection to Neo4j database"""
@@ -117,12 +254,29 @@ class ASKGMCPServer:
                 if mcp_server:
                     mcp_servers.append(mcp_server)
             
+            # If no servers found in database, do not use mock data
+            if not mcp_servers:
+                logger.info("No servers found in database, returning empty result (no mock data)")
+                search_metadata = {
+                    "search_terms": search_terms,
+                    "prompt": request.prompt,
+                    "instance": self.instance,
+                    "search_strategy": "semantic_multi_faceted",
+                    "mock_data": False
+                }
+                return ServerSearchResult(
+                    servers=[],
+                    total_found=0,
+                    search_metadata=search_metadata
+                )
+            
             # Create search metadata
             search_metadata = {
                 "search_terms": search_terms,
                 "prompt": request.prompt,
                 "instance": self.instance,
-                "search_strategy": "semantic_multi_faceted"
+                "search_strategy": "semantic_multi_faceted",
+                "mock_data": len([s for s in mcp_servers if s.raw_metadata.get("mock", False)]) > 0
             }
             
             return ServerSearchResult(
@@ -133,7 +287,24 @@ class ASKGMCPServer:
             
         except Exception as e:
             logger.error(f"Error during server search: {e}")
-            raise
+            logger.info("Falling back to mock data due to error")
+            
+            # Fallback to mock data
+            mcp_servers = get_mock_servers(request.prompt)
+            
+            search_metadata = {
+                "prompt": request.prompt,
+                "instance": self.instance,
+                "search_strategy": "mock_fallback",
+                "error": str(e),
+                "mock_data": True
+            }
+            
+            return ServerSearchResult(
+                servers=mcp_servers,
+                total_found=len(mcp_servers),
+                search_metadata=search_metadata
+            )
     
     def _extract_search_terms(self, prompt: str) -> Dict[str, Any]:
         """
@@ -278,12 +449,16 @@ class ASKGMCPServer:
                         operations.append(OperationType.EXECUTE)
             
             # Convert registry source
-            registry_source = RegistrySource.UNKNOWN
+            registry_source = RegistrySource.GITHUB  # Default to GITHUB
             if server_data.get('registry_source'):
-                try:
-                    registry_source = RegistrySource(server_data['registry_source'])
-                except ValueError:
-                    pass
+                raw = server_data['registry_source']
+                mapping = {
+                    'github': RegistrySource.GITHUB,
+                    'glama': RegistrySource.GLAMA,
+                    'mcp.so': RegistrySource.MCP_SO,
+                    'mcpmarket.com': RegistrySource.MCP_MARKET,
+                }
+                registry_source = mapping.get(str(raw).lower(), RegistrySource.GITHUB)
             
             # Create MCPServer object
             return MCPServer(
@@ -293,15 +468,15 @@ class ASKGMCPServer:
                 version=server_data.get('version'),
                 author=server_data.get('author'),
                 license=server_data.get('license'),
-                homepage=server_data.get('homepage'),
-                repository=server_data.get('repository'),
+                homepage=str(server_data.get('homepage')) if server_data.get('homepage') else None,
+                repository=str(server_data.get('repository')) if server_data.get('repository') else None,
                 implementation_language=server_data.get('implementation_language'),
                 installation_command=server_data.get('installation_command'),
                 categories=categories,
                 operations=operations,
                 data_types=server_data.get('data_types', []),
                 registry_source=registry_source,
-                source_url=server_data.get('source_url'),
+                source_url=str(server_data.get('source_url')) if server_data.get('source_url') else None,
                 last_updated=server_data.get('last_updated'),
                 popularity_score=server_data.get('popularity_score'),
                 download_count=server_data.get('download_count'),
@@ -331,7 +506,7 @@ class MCPServerProtocol:
             return {
                 'jsonrpc': '2.0',
                 'id': request.get('id'),
-                'result': result.dict()
+                'result': result.model_dump(mode="json")
             }
         else:
             return {
@@ -344,48 +519,42 @@ class MCPServerProtocol:
             }
 
 
-async def main():
-    """Main entry point for the MCP server"""
+def main():
     import argparse
-    
+    import aiohttp
+    from aiohttp import web
+
     parser = argparse.ArgumentParser(description='ASKG MCP Server')
     parser.add_argument('--config', default='.config.yaml', help='Configuration file path')
     parser.add_argument('--instance', default='local', help='Neo4j instance to use')
     parser.add_argument('--port', type=int, default=8080, help='Server port')
-    
     args = parser.parse_args()
-    
-    # Initialize the ASKG MCP server
-    with ASKGMCPServer(args.config, args.instance) as server:
-        protocol = MCPServerProtocol(server)
-        
-        # Simple HTTP server for demonstration
-        # In production, you'd use a proper MCP server implementation
-        import aiohttp
-        from aiohttp import web
-        
-        async def handle_request(request):
-            try:
-                data = await request.json()
-                response = await protocol.handle_request(data)
-                return web.json_response(response)
-            except Exception as e:
-                logger.error(f"Error handling request: {e}")
-                return web.json_response({
-                    'jsonrpc': '2.0',
-                    'id': data.get('id') if 'data' in locals() else None,
-                    'error': {
-                        'code': -32603,
-                        'message': str(e)
-                    }
-                })
-        
-        app = web.Application()
-        app.router.add_post('/', handle_request)
-        
-        logger.info(f"Starting ASKG MCP server on port {args.port}")
-        web.run_app(app, port=args.port)
 
+    # Initialize the ASKG MCP server
+    askg_server = ASKGMCPServer(args.config, args.instance)
+    protocol = MCPServerProtocol(askg_server)
+
+    async def handle_request(request):
+        try:
+            data = await request.json()
+            response = await protocol.handle_request(data)
+            return web.json_response(response)
+        except Exception as e:
+            logger.error(f"Error handling request: {e}")
+            return web.json_response({
+                'jsonrpc': '2.0',
+                'id': data.get('id') if 'data' in locals() else None,
+                'error': {
+                    'code': -32603,
+                    'message': str(e)
+                }
+            })
+
+    app = web.Application()
+    app.router.add_post('/', handle_request)
+
+    logger.info(f"Starting ASKG MCP server on port {args.port}")
+    web.run_app(app, port=args.port)
 
 if __name__ == '__main__':
-    asyncio.run(main()) 
+    main() 

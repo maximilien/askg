@@ -3,9 +3,22 @@ Name: askg
 Version: 0.1.0
 Summary: Agent-Server Knowledge Graph
 Author: ASKG Team
-Requires-Python: >=3.8
+Requires-Python: >=3.10
 Description-Content-Type: text/markdown
 License-File: LICENSE
+Requires-Dist: pydantic>=2.0.0
+Requires-Dist: neo4j>=5.0.0
+Requires-Dist: aiohttp>=3.8.0
+Requires-Dist: beautifulsoup4>=4.11.0
+Requires-Dist: pyyaml>=6.0
+Requires-Dist: tqdm>=4.65.0
+Requires-Dist: langgraph>=0.0.40
+Requires-Dist: langchain-core>=0.1.0
+Provides-Extra: dev
+Requires-Dist: pytest>=7.0.0; extra == "dev"
+Requires-Dist: pytest-asyncio>=0.21.0; extra == "dev"
+Requires-Dist: pytest-cov>=4.0.0; extra == "dev"
+Requires-Dist: mcp>=1.0.0; extra == "dev"
 Dynamic: license-file
 
 # askg

@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>askg AI Agent</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header with hamburger menu -->
+        <header class="header">
+            <div class="header-left">
+                <button class="hamburger-menu" id="hamburgerMenu">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <h1 class="title">askg AI Agent</h1>
+            </div>
+        </header>
+
+        <!-- Main content area -->
+        <div class="main-content">
+            <!-- Chat history sidebar (20% width, collapsible) -->
+            <div class="chat-history-sidebar" id="chatHistorySidebar">
+                <div class="sidebar-header">
+                    <h3>Chat History</h3>
+                    <button class="collapse-btn" id="collapseSidebar">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                </div>
+                <div class="chat-history-list" id="chatHistoryList">
+                    <!-- Chat history items will be populated here -->
+                </div>
+            </div>
+
+            <!-- Main chat area (middle section) -->
+            <div class="chat-main-area">
+                <!-- Restore sidebar button (hidden by default) -->
+                <button class="restore-sidebar-btn" id="restoreSidebarBtn" style="display: none;">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+                <div class="chat-messages" id="chatMessages">
+                    <!-- Messages will be populated here -->
+                </div>
+                <div class="chat-input-container">
+                    <div class="chat-input-wrapper">
+                        <textarea 
+                            id="chatInput" 
+                            placeholder="Type your message here..."
+                            rows="1"
+                        ></textarea>
+                        <button class="send-button" id="sendButton">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Resizable divider -->
+            <div class="resize-divider" id="resizeDivider">
+                <div class="resize-handle">
+                    <i class="fas fa-grip-vertical"></i>
+                </div>
+            </div>
+
+            <!-- Knowledge graph sidebar (resizable) -->
+            <div class="knowledge-graph-sidebar" id="knowledgeGraphSidebar">
+                <div class="sidebar-header">
+                    <h3>Knowledge Graph</h3>
+                </div>
+                <div class="knowledge-graph-content" id="knowledgeGraphContent">
+                    <!-- Graph visualization container -->
+                    <div class="graph-visualization" id="graphVisualization">
+                        <div class="graph-placeholder">
+                            <i class="fas fa-project-diagram"></i>
+                            <p>Knowledge Graph Visualization</p>
+                            <p class="graph-description">
+                                This area will display the askg knowledge graph representation 
+                                showing MCP servers, relationships, and connections.
+                            </p>
+                        </div>
+                    </div>
+                    <!-- Server list container -->
+                    <div class="server-list-container" id="serverListContainer">
+                        <!-- Server cards will be populated here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hamburger menu dropdown OUTSIDE app-container -->
+    <div class="menu-dropdown" id="menuDropdown">
+        <div class="menu-item" id="newChat">
+            <i class="fas fa-plus"></i>
+            New Chat
+        </div>
+        <div class="menu-item" id="clearCurrentChat">
+            <i class="fas fa-eraser"></i>
+            Clear Current Chat
+        </div>
+        <div class="menu-item" id="clearHistory">
+            <i class="fas fa-trash"></i>
+            Clear All History
+        </div>
+        <div class="menu-item" id="clearEverything">
+            <i class="fas fa-broom"></i>
+            Clear Everything
+        </div>
+        <div class="menu-divider"></div>
+        <div class="menu-item" id="settings">
+            <i class="fas fa-cog"></i>
+            Settings
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div class="modal-overlay" id="settingsModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Settings</h3>
+                <button class="modal-close" id="closeSettings">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="setting-item">
+                    <label for="maxResults">Max Results:</label>
+                    <input type="number" id="maxResults" value="20" min="1" max="100">
+                    <small>Maximum number of MCP servers to return (1-100)</small>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="cancelSettings">Cancel</button>
+                <button class="btn btn-primary" id="saveSettings">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="app.js"></script>
+</body>
+</html> 
