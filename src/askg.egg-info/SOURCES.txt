@@ -23,8 +23,10 @@ src/askg.egg-info/dependency_links.txt
 src/askg.egg-info/requires.txt
 src/askg.egg-info/top_level.txt
 tests/test_config.py
+tests/test_config_detection.py
 tests/test_direct_glama.py
 tests/test_fast_loading.py
 tests/test_glama_detailed.py
 tests/test_global_ids.py
+tests/test_mcp_search.py
 tests/test_orchestrator.py
