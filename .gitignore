@@ -5,4 +5,10 @@ mcp-server-demo
 glama
 glama_files.csv
 .config.yaml
-.coverage*
+
+# ignore temp files
+.askg.pid
+.coverage.*
+
+# ignore code workspace
+askg.code-workspace
