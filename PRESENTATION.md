@@ -6,6 +6,15 @@ backgroundColor: #fff
 backgroundImage: url('https://marp.app/assets/hero-background.svg')
 ---
 
+<!-- 
+To generate PDF or HTML from this presentation:
+npx @marp-team/marp-cli@latest PRESENTATION.md -o ~/Desktop/ragme-ai.pdf
+npx @marp-team/marp-cli@latest PRESENTATION.md -o ~/Desktop/ragme-ai.html
+
+For HTML with speaker notes:
+npx @marp-team/marp-cli@latest PRESENTATION.md --html --allow-local-files -o ~/Desktop/ragme-ai.html
+-->
+
 # AskG: Agent-Server Knowledge Graph
 ## Building the Future of MCP Server Discovery
 
@@ -55,6 +64,13 @@ backgroundImage: url('https://marp.app/assets/hero-background.svg')
 │   Deduplication │    │   Global IDs    │    │   Knowledge     │
 │   System        │    │   (Standardized)│    │   Graph         │
 └─────────────────┘    └─────────────────┘    └─────────────────┘
+         │                       │                       │
+         ▼                       ▼                       ▼
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│   MCP Server    │    │   Frontend      │    │   LangGraph     │
+│   (Semantic     │    │   (Chat UI)     │    │   Orchestrator  │
+│   Search)       │    │                 │    │                 │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
 ```
 
 ---
@@ -94,6 +110,54 @@ backgroundImage: url('https://marp.app/assets/hero-background.svg')
 - ✅ Human readable
 - ✅ Globally unique
 - ✅ Traceable
+
+---
+
+# MCP Server Component
+
+## Semantic Search for MCP Servers
+
+The ASKG MCP server provides natural language search capabilities for discovering MCP servers in the knowledge graph.
+
+## Key Features
+- **Semantic Search**: Multi-faceted search using text, categories, and operations
+- **Confidence Scoring**: Results ranked by relevance score
+- **Flexible Queries**: Natural language prompts for finding servers
+- **MCP Protocol Compliant**: Follows official MCP specification
+
+## Example Search Queries
+- "Find database servers for SQL operations"
+- "Show me file system servers for reading and writing files"
+- "I need API integration servers for REST APIs"
+- "Find AI and machine learning servers"
+
+---
+
+# Frontend Chat Interface
+
+## Modern TypeScript Chat UI
+
+A responsive web-based chat interface for interacting with the AskG AI agent.
+
+## Key Features
+- **Real-time Chat**: WebSocket-based messaging with the AI agent
+- **Responsive Design**: Modern UI with glassmorphism effects
+- **Chat History**: Collapsible sidebar showing previous chats (20% width)
+- **Knowledge Graph**: Dedicated space for graph visualization (25% width)
+- **Auto-resizing Input**: Smart textarea that grows with content
+- **Typing Indicators**: Visual feedback when AI is responding
+
+## Layout Structure
+```
+┌─────────────────────────────────────────────────────────────┐
+│ Header: Hamburger Menu + "askg AI Agent" title             │
+├─────────────┬─────────────────────────────┬─────────────────┤
+│ Chat        │ Main Chat Area              │ Knowledge       │
+│ History     │ - Conversation              │ Graph           │
+│ Sidebar     │ - Input Box                 │ Visualization   │
+│ (20%)       │ - Typing Indicators         │ (25%)           │
+└─────────────┴─────────────────────────────┴─────────────────┘
+```
 
 ---
 
@@ -216,7 +280,17 @@ cd askg
 
 ## Basic Usage
 ```bash
+# Run the main knowledge graph system
 python src/main.py
+
+# Start the frontend chat interface
+cd frontend
+npm install
+npm run dev
+
+# Run the MCP server for semantic search
+cd mcp
+python mcp_server.py --config ../.config.yaml --instance local
 ```
 
 ---
@@ -260,6 +334,8 @@ uv run pytest tests/test_specific_file.py -v
 - Global ID generation and uniqueness
 - MCP search functionality
 - Orchestrator pipeline building
+- Frontend WebSocket communication
+- MCP server protocol compliance
 
 ---
 
@@ -325,6 +401,8 @@ Each registry snapshot includes:
 - [ ] Additional registry integrations (npm, PyPI)
 - [ ] Real MCP server execution (beyond mock)
 - [ ] Web UI for knowledge graph exploration
+- [ ] Frontend-backend integration with real AI agent
+- [ ] MCP server deployment to Claude Desktop
 
 ## Medium Term (3-6 months)
 - [ ] Community contributions system
@@ -355,6 +433,8 @@ The system demonstrates:
 - **4 major registries** integrated with more planned
 - **Composable workflows** enabled through LangGraph orchestration
 - **Knowledge graph** ready for advanced querying and analysis
+- **Semantic search** via MCP server for natural language discovery
+- **Modern chat interface** for intuitive AI agent interaction
 
 ---
 
