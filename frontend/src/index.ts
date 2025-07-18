@@ -16,7 +16,7 @@ const io = new Server(server, {
 });
 
 // MCP Server configuration
-const MCP_SERVER_URL = 'http://localhost:8080';
+const MCP_SERVER_URL = 'http://localhost:8200';
 
 // Middleware
 app.use(helmet());

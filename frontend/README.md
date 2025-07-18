@@ -101,7 +101,7 @@ frontend/
 
 1. Build the project: `npm run build`
 2. Start the server: `npm start`
-3. The server will run on port 3000 by default
+3. The server will run on port 3200 by default
 4. Set the `PORT` environment variable to change the port
 
 ## Integration with askg Backend

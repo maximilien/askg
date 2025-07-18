@@ -33,6 +33,10 @@ class AskGChatApp {
         this.chatInput = document.getElementById('chatInput');
         this.sendButton = document.getElementById('sendButton');
         this.restoreSidebarBtn = document.getElementById('restoreSidebarBtn');
+        this.restoreKnowledgeGraphBtn = document.getElementById('restoreKnowledgeGraphBtn');
+        this.collapseKnowledgeGraphBtn = document.getElementById('collapseKnowledgeGraph');
+        this.graphToggleBtn = document.getElementById('graphToggleBtn');
+        this.graphVisualization = document.getElementById('graphVisualization');
         this.knowledgeGraphContent = document.getElementById('knowledgeGraphContent');
         this.resizeDivider = document.getElementById('resizeDivider');
         this.knowledgeGraphSidebar = document.getElementById('knowledgeGraphSidebar');
@@ -173,6 +177,20 @@ class AskGChatApp {
             this.toggleSidebar();
         });
 
+        // Knowledge graph collapse/restore
+        this.collapseKnowledgeGraphBtn.addEventListener('click', () => {
+            this.toggleKnowledgeGraph();
+        });
+
+        this.restoreKnowledgeGraphBtn.addEventListener('click', () => {
+            this.toggleKnowledgeGraph();
+        });
+
+        // Graph toggle
+        this.graphToggleBtn.addEventListener('click', () => {
+            this.toggleGraphVisualization();
+        });
+
         // Chat input
         this.chatInput.addEventListener('input', () => {
             this.autoResizeTextarea();
@@ -234,6 +252,45 @@ class AskGChatApp {
         }
     }
 
+    toggleKnowledgeGraph() {
+        this.knowledgeGraphSidebar.classList.toggle('collapsed');
+        const icon = this.collapseKnowledgeGraphBtn.querySelector('i');
+        
+        if (this.knowledgeGraphSidebar.classList.contains('collapsed')) {
+            // Knowledge graph is collapsed - show restore button and update collapse button
+            icon.className = 'fas fa-chevron-left';
+            this.restoreKnowledgeGraphBtn.style.display = 'block';
+            // Hide resize divider when collapsed
+            this.resizeDivider.style.display = 'none';
+        } else {
+            // Knowledge graph is expanded - hide restore button and update collapse button
+            icon.className = 'fas fa-chevron-right';
+            this.restoreKnowledgeGraphBtn.style.display = 'none';
+            // Show resize divider when expanded
+            this.resizeDivider.style.display = 'flex';
+        }
+    }
+
+    toggleGraphVisualization() {
+        this.graphVisualization.classList.toggle('collapsed');
+        const icon = this.graphToggleBtn.querySelector('i');
+        
+        if (this.graphVisualization.classList.contains('collapsed')) {
+            // Graph is collapsed - show eye icon to indicate it can be shown
+            icon.className = 'fas fa-eye';
+        } else {
+            // Graph is expanded - show eye-slash icon to indicate it can be hidden
+            icon.className = 'fas fa-eye-slash';
+        }
+        
+        // Redraw the graph if it's being shown and we have current servers
+        if (!this.graphVisualization.classList.contains('collapsed') && this.currentServers) {
+            setTimeout(() => {
+                this.redrawGraphVisualization();
+            }, 300); // Wait for animation to complete
+        }
+    }
+
     autoResizeTextarea() {
         this.chatInput.style.height = 'auto';
         this.chatInput.style.height = Math.min(this.chatInput.scrollHeight, 120) + 'px';
@@ -261,14 +318,31 @@ class AskGChatApp {
         // Show loading indicator in knowledge graph pane
         this.knowledgeGraphContent.innerHTML = `
             <div class="graph-visualization" id="graphVisualization">
-                <div class="loading-indicator">
-                    <i class="fas fa-spinner fa-spin"></i>
-                    <p>Searching for MCP servers...</p>
+                <div class="graph-header">
+                    <h4>Graph Visualization</h4>
+                    <button class="graph-toggle-btn" id="graphToggleBtn">
+                        <i class="fas fa-eye-slash"></i>
+                    </button>
+                </div>
+                <div class="graph-content" id="graphContent">
+                    <div class="loading-indicator">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        <p>Searching for MCP servers...</p>
+                    </div>
                 </div>
             </div>
             <div class="server-list-container" id="serverListContainer">
             </div>
         `;
+
+        // Re-bind the graph toggle button after DOM update
+        this.graphToggleBtn = document.getElementById('graphToggleBtn');
+        this.graphVisualization = document.getElementById('graphVisualization');
+        if (this.graphToggleBtn) {
+            this.graphToggleBtn.addEventListener('click', () => {
+                this.toggleGraphVisualization();
+            });
+        }
         
         // Send to server
         this.socket.emit('chat_message', {
@@ -380,18 +454,35 @@ class AskGChatApp {
         // Clear knowledge graph pane
         this.knowledgeGraphContent.innerHTML = `
             <div class="graph-visualization" id="graphVisualization">
-                <div class="graph-placeholder">
-                    <i class="fas fa-project-diagram"></i>
-                    <p>Knowledge Graph Visualization</p>
-                    <p class="graph-description">
-                        This area will display the askg knowledge graph representation 
-                        showing MCP servers, relationships, and connections.
-                    </p>
+                <div class="graph-header">
+                    <h4>Graph Visualization</h4>
+                    <button class="graph-toggle-btn" id="graphToggleBtn">
+                        <i class="fas fa-eye-slash"></i>
+                    </button>
+                </div>
+                <div class="graph-content" id="graphContent">
+                    <div class="graph-placeholder">
+                        <i class="fas fa-project-diagram"></i>
+                        <p>Knowledge Graph Visualization</p>
+                        <p class="graph-description">
+                            This area will display the askg knowledge graph representation 
+                            showing MCP servers, relationships, and connections.
+                        </p>
+                    </div>
                 </div>
             </div>
             <div class="server-list-container" id="serverListContainer">
             </div>
         `;
+
+        // Re-bind the graph toggle button after DOM update
+        this.graphToggleBtn = document.getElementById('graphToggleBtn');
+        this.graphVisualization = document.getElementById('graphVisualization');
+        if (this.graphToggleBtn) {
+            this.graphToggleBtn.addEventListener('click', () => {
+                this.toggleGraphVisualization();
+            });
+        }
     }
 
     saveCurrentChat() {
@@ -602,14 +693,31 @@ class AskGChatApp {
             this.currentServers = [];
             this.knowledgeGraphContent.innerHTML = `
                 <div class="graph-visualization" id="graphVisualization">
-                    <div class="no-results">
-                        <i class="fas fa-search"></i>
-                        <p>No MCP servers found for your query.</p>
+                    <div class="graph-header">
+                        <h4>Graph Visualization</h4>
+                        <button class="graph-toggle-btn" id="graphToggleBtn">
+                            <i class="fas fa-eye-slash"></i>
+                        </button>
+                    </div>
+                    <div class="graph-content" id="graphContent">
+                        <div class="no-results">
+                            <i class="fas fa-search"></i>
+                            <p>No MCP servers found for your query.</p>
+                        </div>
                     </div>
                 </div>
                 <div class="server-list-container" id="serverListContainer">
                 </div>
             `;
+
+            // Re-bind the graph toggle button after DOM update
+            this.graphToggleBtn = document.getElementById('graphToggleBtn');
+            this.graphVisualization = document.getElementById('graphVisualization');
+            if (this.graphToggleBtn) {
+                this.graphToggleBtn.addEventListener('click', () => {
+                    this.toggleGraphVisualization();
+                });
+            }
             return;
         }
 
@@ -654,7 +762,15 @@ class AskGChatApp {
         // Update the content structure
         this.knowledgeGraphContent.innerHTML = `
             <div class="graph-visualization" id="graphVisualization">
-                <!-- Graph will be rendered here -->
+                <div class="graph-header">
+                    <h4>Graph Visualization</h4>
+                    <button class="graph-toggle-btn" id="graphToggleBtn">
+                        <i class="fas fa-eye-slash"></i>
+                    </button>
+                </div>
+                <div class="graph-content" id="graphContent">
+                    <!-- Graph will be rendered here -->
+                </div>
             </div>
             <div class="server-list-container" id="serverListContainer">
                 <div class="knowledge-graph-header">
@@ -668,6 +784,15 @@ class AskGChatApp {
                 </div>
             </div>
         `;
+
+        // Re-bind the graph toggle button after DOM update
+        this.graphToggleBtn = document.getElementById('graphToggleBtn');
+        this.graphVisualization = document.getElementById('graphVisualization');
+        if (this.graphToggleBtn) {
+            this.graphToggleBtn.addEventListener('click', () => {
+                this.toggleGraphVisualization();
+            });
+        }
 
         console.log('DOM updated, creating graph visualization');
         console.log('Graph container after DOM update:', document.getElementById('graphVisualization'));
@@ -683,8 +808,8 @@ class AskGChatApp {
         console.log('createGraphVisualization called with:', servers);
         console.log('Servers data:', servers);
         
-        const graphContainer = document.getElementById('graphVisualization');
-        console.log('Looking for graphVisualization element:', graphContainer);
+        const graphContainer = document.getElementById('graphContent');
+        console.log('Looking for graphContent element:', graphContainer);
         
         if (!graphContainer) {
             console.error('Graph container not found!');
@@ -1087,6 +1212,11 @@ class AskGChatApp {
         let startWidth = 0;
 
         const startResize = (e) => {
+            // Don't allow resizing if knowledge graph is collapsed
+            if (this.knowledgeGraphSidebar.classList.contains('collapsed')) {
+                return;
+            }
+            
             isResizing = true;
             startX = e.clientX;
             startWidth = this.knowledgeGraphSidebar.offsetWidth;

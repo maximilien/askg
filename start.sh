@@ -67,7 +67,7 @@ fi
 
 # Start MCP server (Python backend)
 echo "Starting MCP server..."
-python3 mcp/server.py --port 8080 --instance $NEO4J_INSTANCE &
+python3 mcp/server.py --port 8200 --instance $NEO4J_INSTANCE &
 MCP_PID=$!
 echo "MCP server started with PID $MCP_PID (using $NEO4J_INSTANCE instance)"
 
@@ -76,7 +76,7 @@ echo "Building frontend..."
 cd frontend
 npm run build
 echo "Starting frontend..."
-npm start &
+PORT=3200 npm start &
 FRONTEND_PID=$!
 cd ..
 echo "Frontend started with PID $FRONTEND_PID"
@@ -93,8 +93,8 @@ echo "$FRONTEND_PID" >> .askg.pid
 echo "All services started. PIDs saved to .askg.pid."
 echo
 # Print quick access URLs
-echo "Access the Frontend UI at:   http://localhost:3000"
-echo "Access the MCP server API at: http://localhost:8080"
+echo "Access the Frontend UI at:   http://localhost:3200"
+echo "Access the MCP server API at: http://localhost:8200"
 if [ "$NEO4J_INSTANCE" = "remote" ]; then
     echo "Connected to remote Neo4j instance"
 else

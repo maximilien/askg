@@ -263,6 +263,11 @@ ORDER BY r.confidence_score DESC
 
 # Getting Started
 
+## Service Ports
+- **Frontend Chat Interface**: http://localhost:3200
+- **MCP Server API**: http://localhost:8200
+- **Neo4j Browser**: http://localhost:7474 (if using local Neo4j Desktop)
+
 ## Prerequisites
 1. **Neo4j Database**: Install and run Neo4j locally
    ```bash
@@ -283,14 +288,18 @@ cd askg
 # Run the main knowledge graph system
 python src/main.py
 
-# Start the frontend chat interface
+# Start all services (recommended)
+./start.sh
+
+# Or start components individually:
+# Frontend chat interface
 cd frontend
 npm install
-npm run dev
+npm run dev  # Runs on http://localhost:3200
 
-# Run the MCP server for semantic search
+# MCP server for semantic search
 cd mcp
-python mcp_server.py --config ../.config.yaml --instance local
+python server.py --port 8200 --config ../.config.yaml --instance local
 ```
 
 ---

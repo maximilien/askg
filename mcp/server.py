@@ -527,7 +527,7 @@ def main():
     parser = argparse.ArgumentParser(description='ASKG MCP Server')
     parser.add_argument('--config', default='.config.yaml', help='Configuration file path')
     parser.add_argument('--instance', default='local', help='Neo4j instance to use')
-    parser.add_argument('--port', type=int, default=8080, help='Server port')
+    parser.add_argument('--port', type=int, default=8200, help='Server port')
     args = parser.parse_args()
 
     # Initialize the ASKG MCP server

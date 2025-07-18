@@ -133,6 +133,25 @@ Build the complete knowledge graph:
 python src/main.py
 ```
 
+### Starting All Services
+
+Use the automated start script to run the complete AskG system:
+```bash
+./start.sh
+```
+
+This will start:
+- **Frontend Chat Interface**: http://localhost:3200
+- **MCP Server**: http://localhost:8200
+- **Neo4j Database**: Local or remote (based on configuration)
+
+### Stopping All Services
+
+Use the automated stop script:
+```bash
+./stop.sh
+```
+
 ### Advanced Options
 
 ```bash
