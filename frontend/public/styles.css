@@ -231,6 +231,29 @@ body {
     font-size: 0.9rem;
 }
 
+.restore-kg-btn {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    padding: 0.5rem;
+    cursor: pointer;
+    z-index: 100;
+    transition: all 0.2s ease;
+    backdrop-filter: blur(10px);
+}
+
+.restore-kg-btn:hover {
+    background: rgba(255, 255, 255, 1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.restore-kg-btn i {
+    font-size: 1.2rem;
+}
+
 .chat-messages {
     flex: 1;
     overflow-y: auto;
@@ -386,6 +409,19 @@ body {
     border-left: 1px solid rgba(0, 0, 0, 0.1);
     display: flex;
     flex-direction: column;
+    transition: all 0.3s ease;
+}
+
+.knowledge-graph-sidebar.collapsed {
+    width: 0;
+    min-width: 0;
+    max-width: 0;
+    overflow: hidden;
+    border-left: none;
+}
+
+.knowledge-graph-sidebar.collapsed + .resize-divider {
+    display: none !important;
 }
 
 .knowledge-graph-content {
@@ -407,6 +443,58 @@ body {
     background: rgba(255, 255, 255, 0.8);
     position: relative;
     overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.graph-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 1rem;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    background: rgba(255, 255, 255, 0.9);
+    min-height: 40px;
+}
+
+.graph-header h4 {
+    margin: 0;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #333;
+}
+
+.graph-toggle-btn {
+    background: none;
+    border: none;
+    color: #666;
+    cursor: pointer;
+    padding: 0.25rem;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+    font-size: 0.9rem;
+}
+
+.graph-toggle-btn:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+    color: #333;
+}
+
+.graph-content {
+    flex: 1;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.graph-visualization.collapsed .graph-content {
+    height: 0;
+    overflow: hidden;
+}
+
+.graph-visualization.collapsed {
+    height: auto;
+    min-height: 40px;
+    max-height: 40px;
 }
 
 .graph-visualization svg {

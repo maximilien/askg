@@ -41,6 +41,10 @@
                 <button class="restore-sidebar-btn" id="restoreSidebarBtn" style="display: none;">
                     <i class="fas fa-chevron-right"></i>
                 </button>
+                <!-- Restore knowledge graph button (hidden by default) -->
+                <button class="restore-kg-btn" id="restoreKnowledgeGraphBtn" style="display: none;">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
                 <div class="chat-messages" id="chatMessages">
                     <!-- Messages will be populated here -->
                 </div>
@@ -69,17 +73,28 @@
             <div class="knowledge-graph-sidebar" id="knowledgeGraphSidebar">
                 <div class="sidebar-header">
                     <h3>Knowledge Graph</h3>
+                    <button class="collapse-btn" id="collapseKnowledgeGraph">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
                 </div>
                 <div class="knowledge-graph-content" id="knowledgeGraphContent">
                     <!-- Graph visualization container -->
                     <div class="graph-visualization" id="graphVisualization">
-                        <div class="graph-placeholder">
-                            <i class="fas fa-project-diagram"></i>
-                            <p>Knowledge Graph Visualization</p>
-                            <p class="graph-description">
-                                This area will display the askg knowledge graph representation 
-                                showing MCP servers, relationships, and connections.
-                            </p>
+                        <div class="graph-header">
+                            <h4>Graph Visualization</h4>
+                            <button class="graph-toggle-btn" id="graphToggleBtn">
+                                <i class="fas fa-eye-slash"></i>
+                            </button>
+                        </div>
+                        <div class="graph-content" id="graphContent">
+                            <div class="graph-placeholder">
+                                <i class="fas fa-project-diagram"></i>
+                                <p>Knowledge Graph Visualization</p>
+                                <p class="graph-description">
+                                    This area will display the askg knowledge graph representation 
+                                    showing MCP servers, relationships, and connections.
+                                </p>
+                            </div>
                         </div>
                     </div>
                     <!-- Server list container -->

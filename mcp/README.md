@@ -46,7 +46,7 @@ python mcp_server.py --config ../.config.yaml --instance local
 
 ```bash
 # Run the simple HTTP server for testing
-python server.py --config ../.config.yaml --instance local --port 8080
+python server.py --config ../.config.yaml --instance local --port 8200
 ```
 
 ### Using the Client Example

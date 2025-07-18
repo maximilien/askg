@@ -18,7 +18,7 @@ const io = new socket_io_1.Server(server, {
         methods: ["GET", "POST"]
     }
 });
-const MCP_SERVER_URL = 'http://localhost:8080';
+const MCP_SERVER_URL = 'http://localhost:8200';
 app.use((0, helmet_1.default)());
 app.use((0, compression_1.default)());
 app.use((0, cors_1.default)());
