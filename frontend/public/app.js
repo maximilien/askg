@@ -14,7 +14,11 @@ class AskGChatApp {
         this.initializeSocket();
         this.bindEvents();
         this.loadChatHistory();
-        this.initializeSampleData();
+        
+        // Start with a new chat if no history exists
+        if (this.chatHistory.length === 0) {
+            this.startNewChat();
+        }
     }
 
     initializeElements() {
@@ -372,6 +376,25 @@ class AskGChatApp {
         this.messages.push(message);
         this.renderMessage(message);
         this.scrollToBottom();
+        
+        // Update the current chat in history with the new message
+        if (this.currentChatId) {
+            const chatIndex = this.chatHistory.findIndex(c => c.id === this.currentChatId);
+            if (chatIndex !== -1) {
+                this.chatHistory[chatIndex].messages = [...this.messages];
+                
+                // Update chat title if it's still "New Chat" and this is a user message
+                if (type === 'user' && this.chatHistory[chatIndex].title === 'New Chat') {
+                    const newTitle = this.generateChatTitle();
+                    if (newTitle !== 'Untitled Chat') {
+                        this.chatHistory[chatIndex].title = newTitle;
+                    }
+                }
+                
+                this.saveChatHistory();
+                this.renderChatHistory();
+            }
+        }
     }
 
     addSystemMessage(content) {
@@ -449,7 +472,10 @@ class AskGChatApp {
         this.socket.emit('new_chat');
         this.currentChatId = this.nextChatId.toString();
         this.nextChatId++;
-        this.addChatToHistory('New Chat', this.currentChatId);
+        this.addChatToHistory('New Chat', this.currentChatId, []);
+        
+        // Clear current messages
+        this.clearMessages();
         
         // Clear knowledge graph pane
         this.knowledgeGraphContent.innerHTML = `
@@ -529,10 +555,11 @@ class AskGChatApp {
         this.renderChatHistory();
     }
 
-    addChatToHistory(title, id) {
+    addChatToHistory(title, id, messages = []) {
         const chatItem = {
             id: id,
             title: title,
+            messages: messages,
             timestamp: new Date().toISOString()
         };
 
@@ -576,12 +603,33 @@ class AskGChatApp {
             
             chatItem.innerHTML = `
                 <div class="chat-id">#${chat.id}</div>
-                <div class="chat-title">${chat.title}</div>
+                <div class="chat-title" data-chat-id="${chat.id}">${chat.title}</div>
                 <div class="chat-time">${timeString}</div>
+                <button class="chat-delete-btn" data-chat-id="${chat.id}" title="Delete chat">
+                    <i class="fas fa-trash"></i>
+                </button>
             `;
             
-            chatItem.addEventListener('click', () => {
-                this.loadChat(chat.id);
+            // Add click handler for loading chat
+            chatItem.addEventListener('click', (e) => {
+                // Don't load chat if clicking on the title (for editing) or delete button
+                if (!e.target.classList.contains('chat-title') && !e.target.closest('.chat-delete-btn')) {
+                    this.loadChat(chat.id);
+                }
+            });
+            
+            // Add click handler for editing title
+            const titleElement = chatItem.querySelector('.chat-title');
+            titleElement.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.editChatTitle(chat.id, chat.title);
+            });
+            
+            // Add click handler for deleting chat
+            const deleteBtn = chatItem.querySelector('.chat-delete-btn');
+            deleteBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.deleteChat(chat.id);
             });
             
             this.chatHistoryList.appendChild(chatItem);
@@ -589,9 +637,120 @@ class AskGChatApp {
     }
 
     loadChat(chatId) {
-        // In a real app, this would load from the server
         console.log('Loading chat:', chatId);
-        this.showNotification('Chat loading functionality would be implemented here', 'info');
+        
+        // Find the chat in history
+        const chat = this.chatHistory.find(c => c.id === chatId);
+        if (!chat) {
+            this.showNotification('Chat not found', 'error');
+            return;
+        }
+        
+        // Set current chat ID
+        this.currentChatId = chatId;
+        
+        // Clear current messages and load chat messages
+        this.clearMessages();
+        
+        // Load messages from the chat
+        if (chat.messages && chat.messages.length > 0) {
+            this.messages = [...chat.messages];
+            this.messages.forEach(message => {
+                this.renderMessage(message);
+            });
+        }
+        
+        // Update chat title in history if it's still "New Chat" and we have messages
+        if (chat.title === 'New Chat' && this.messages.length > 0) {
+            const newTitle = this.generateChatTitle();
+            if (newTitle !== 'Untitled Chat') {
+                chat.title = newTitle;
+                this.saveChatHistory();
+                this.renderChatHistory();
+            }
+        }
+        
+        this.showNotification(`Loaded chat: ${chat.title}`, 'success');
+    }
+
+    editChatTitle(chatId, currentTitle) {
+        const titleElement = document.querySelector(`[data-chat-id="${chatId}"]`);
+        if (!titleElement) return;
+        
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.value = currentTitle;
+        input.className = 'chat-title-edit';
+        input.style.cssText = `
+            width: 100%;
+            padding: 2px 4px;
+            border: 1px solid #3b82f6;
+            border-radius: 4px;
+            font-size: inherit;
+            font-family: inherit;
+            background: white;
+            color: #374151;
+        `;
+        
+        const saveTitle = () => {
+            const newTitle = input.value.trim();
+            if (newTitle && newTitle !== currentTitle) {
+                const chatIndex = this.chatHistory.findIndex(c => c.id === chatId);
+                if (chatIndex !== -1) {
+                    this.chatHistory[chatIndex].title = newTitle;
+                    this.saveChatHistory();
+                    this.renderChatHistory();
+                    this.showNotification('Chat title updated', 'success');
+                }
+            }
+            titleElement.textContent = newTitle || currentTitle;
+        };
+        
+        const cancelEdit = () => {
+            titleElement.textContent = currentTitle;
+        };
+        
+        input.addEventListener('blur', saveTitle);
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                saveTitle();
+            } else if (e.key === 'Escape') {
+                cancelEdit();
+            }
+        });
+        
+        titleElement.textContent = '';
+        titleElement.appendChild(input);
+        input.focus();
+        input.select();
+    }
+
+    deleteChat(chatId) {
+        const chat = this.chatHistory.find(c => c.id === chatId);
+        if (!chat) {
+            this.showNotification('Chat not found', 'error');
+            return;
+        }
+        
+        const confirmMessage = `Are you sure you want to delete "${chat.title}"? This action cannot be undone.`;
+        if (!confirm(confirmMessage)) {
+            return;
+        }
+        
+        // Remove chat from history
+        this.chatHistory = this.chatHistory.filter(c => c.id !== chatId);
+        
+        // If this was the current chat, clear it
+        if (this.currentChatId === chatId) {
+            this.currentChatId = null;
+            this.clearMessages();
+        }
+        
+        // Save updated history
+        this.saveChatHistory();
+        this.renderChatHistory();
+        
+        this.showNotification(`Deleted chat: ${chat.title}`, 'success');
     }
 
     clearChatHistory() {
@@ -1302,33 +1461,7 @@ class AskGChatApp {
         }
     }
 
-    initializeSampleData() {
-        // Add sample chat history if none exists
-        if (this.chatHistory.length === 0) {
-            const sampleChats = [
-                {
-                    id: '1',
-                    title: 'Database servers',
-                    timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString() // 1 day ago
-                },
-                {
-                    id: '2', 
-                    title: 'File system tools',
-                    timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString() // 2 hours ago
-                },
-                {
-                    id: '3',
-                    title: 'API integration services',
-                    timestamp: new Date(Date.now() - 30 * 60 * 1000).toISOString() // 30 minutes ago
-                }
-            ];
-            
-            this.chatHistory = sampleChats;
-            this.nextChatId = 4; // Start from 4 since we have 3 sample chats
-            this.saveChatHistory();
-            this.renderChatHistory();
-        }
-    }
+    // Removed initializeSampleData() method - no longer needed for clean startup
 }
 
 // Add CSS animations for notifications

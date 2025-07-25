@@ -172,6 +172,7 @@ body {
 }
 
 .chat-history-item {
+    position: relative;
     padding: 0.75rem;
     margin-bottom: 0.5rem;
     background: rgba(255, 255, 255, 0.7);
@@ -189,6 +190,61 @@ body {
 .chat-history-item.active {
     background: rgba(102, 126, 234, 0.1);
     border-color: rgba(102, 126, 234, 0.3);
+}
+
+.chat-title {
+    font-weight: 500;
+    margin-bottom: 0.25rem;
+    cursor: text;
+    transition: color 0.2s;
+    padding: 2px 4px;
+    border-radius: 4px;
+}
+
+.chat-title:hover {
+    color: #3b82f6;
+    background-color: rgba(59, 130, 246, 0.1);
+}
+
+.chat-title-edit {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+    border: 1px solid #3b82f6;
+    border-radius: 4px;
+    font-size: inherit;
+    font-family: inherit;
+    background: white;
+    color: #374151;
+    width: 100%;
+    padding: 2px 4px;
+}
+
+.chat-delete-btn {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.2);
+    border-radius: 4px;
+    padding: 0.25rem 0.5rem;
+    cursor: pointer;
+    color: #ef4444;
+    font-size: 0.75rem;
+    opacity: 0;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.chat-delete-btn:hover {
+    background: rgba(239, 68, 68, 0.2);
+    border-color: rgba(239, 68, 68, 0.4);
+    color: #dc2626;
+}
+
+.chat-history-item:hover .chat-delete-btn {
+    opacity: 1;
 }
 
 /* Main chat area */
