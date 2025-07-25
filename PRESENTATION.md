@@ -46,6 +46,11 @@ npx @marp-team/marp-cli@latest PRESENTATION.md --html --allow-local-files -o ~/D
 - Data types and operations classification
 - Relationship inference between servers
 
+## ⚙️ Enhanced Service Management
+- Robust start/stop scripts with validation
+- Process monitoring and conflict detection
+- Automatic restart and status checking
+
 ---
 
 # Architecture Overview
@@ -70,6 +75,13 @@ npx @marp-team/marp-cli@latest PRESENTATION.md --html --allow-local-files -o ~/D
 │   MCP Server    │    │   Frontend      │    │   LangGraph     │
 │   (Semantic     │    │   (Chat UI)     │    │   Orchestrator  │
 │   Search)       │    │                 │    │                 │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
+         │                       │                       │
+         ▼                       ▼                       ▼
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│   Service       │    │   Process       │    │   Status        │
+│   Management    │    │   Validation    │    │   Monitoring    │
+│   (start.sh)    │    │   (Port/Process)│    │   (stop.sh)     │
 └─────────────────┘    └─────────────────┘    └─────────────────┘
 ```
 
@@ -233,6 +245,7 @@ ORDER BY r.confidence_score DESC
 - ✅ **Comprehensive error handling**
 - ✅ **Resume capability for long scrapes**
 - ✅ **Structured Pydantic data models**
+- ✅ **Enhanced service management with validation**
 
 ## Metadata Quality
 - **100% completion** for core fields (name, description, author, repository)
@@ -283,23 +296,46 @@ cd askg
 ./setup.sh
 ```
 
-## Basic Usage
+## Enhanced Service Management
 ```bash
-# Run the main knowledge graph system
-python src/main.py
-
-# Start all services (recommended)
+# Start all services with validation
 ./start.sh
 
-# Or start components individually:
-# Frontend chat interface
-cd frontend
-npm install
-npm run dev  # Runs on http://localhost:3200
+# Check service status
+./stop.sh status
 
-# MCP server for semantic search
-cd mcp
-python server.py --port 8200 --config ../.config.yaml --instance local
+# Restart all services
+./stop.sh restart
+
+# Stop all services
+./stop.sh stop
+```
+
+---
+
+# Service Management Features
+
+## Enhanced Start Script (`start.sh`)
+- **Conflict Detection**: Checks if services are already running
+- **Port Validation**: Ensures ports 3200 and 8200 are available
+- **Neo4j Connection Testing**: Verifies database connectivity
+- **Process Validation**: Confirms services start and listen on correct ports
+- **Build Validation**: Checks frontend build success before starting server
+
+## Comprehensive Stop Script (`stop.sh`)
+- **Status Monitoring**: Detailed service status with visual indicators
+- **Graceful Shutdown**: Stops processes by PID and cleans up ports
+- **Orphaned Process Cleanup**: Handles processes not tracked by PID files
+- **Restart Capability**: One-command service restart with validation
+- **Help System**: Built-in usage information and examples
+
+## Management Commands
+```bash
+./start.sh                    # Start all services
+./stop.sh status              # Check service status  
+./stop.sh restart             # Restart all services
+./stop.sh stop                # Stop all services
+./stop.sh help                # Show usage information
 ```
 
 ---
@@ -324,6 +360,21 @@ python src/main.py --clear-neo4j
 python src/main.py --stats-only
 ```
 
+## Service Management Examples
+```bash
+# Check what's running
+./stop.sh status
+
+# Restart after configuration changes
+./stop.sh restart
+
+# Clean shutdown for maintenance
+./stop.sh stop
+
+# Start fresh after updates
+./start.sh
+```
+
 ---
 
 # Testing
@@ -345,6 +396,7 @@ uv run pytest tests/test_specific_file.py -v
 - Orchestrator pipeline building
 - Frontend WebSocket communication
 - MCP server protocol compliance
+- Service management script validation
 
 ---
 
@@ -385,6 +437,11 @@ Each registry snapshot includes:
 2. Implement inference logic in `RelationshipInferencer`
 3. Update Neo4j queries as needed
 
+## Service Management Extensions
+1. Add new services to the start/stop scripts
+2. Implement port validation for new services
+3. Update status monitoring for new components
+
 ---
 
 # Security & Best Practices
@@ -401,6 +458,12 @@ Each registry snapshot includes:
 - Respects robots.txt and rate limits
 - Graceful degradation when blocked
 
+## Service Security
+- Port validation prevents conflicts
+- Process isolation and cleanup
+- Graceful error handling
+- No sensitive data in PID files
+
 ---
 
 # Future Roadmap
@@ -412,18 +475,21 @@ Each registry snapshot includes:
 - [ ] Web UI for knowledge graph exploration
 - [ ] Frontend-backend integration with real AI agent
 - [ ] MCP server deployment to Claude Desktop
+- [ ] Service monitoring dashboard
 
 ## Medium Term (3-6 months)
 - [ ] Community contributions system
 - [ ] Advanced relationship inference
 - [ ] Server compatibility scoring
 - [ ] Automated pipeline optimization
+- [ ] Containerized deployment options
 
 ## Long Term (6+ months)
 - [ ] AI-powered server recommendations
 - [ ] Cross-server dependency analysis
 - [ ] Performance benchmarking
 - [ ] Enterprise features
+- [ ] Multi-environment service management
 
 ---
 
@@ -436,6 +502,7 @@ The system demonstrates:
 - **High-quality deduplication** with zero false positives
 - **Stable, human-readable global identifiers**
 - **Scalable architecture** for future growth
+- **Robust service management** with validation and monitoring
 
 ## Impact
 - **176 unique servers** discovered and cataloged
@@ -444,6 +511,7 @@ The system demonstrates:
 - **Knowledge graph** ready for advanced querying and analysis
 - **Semantic search** via MCP server for natural language discovery
 - **Modern chat interface** for intuitive AI agent interaction
+- **Enhanced service management** for reliable deployment and operation
 
 ---
 
@@ -459,6 +527,7 @@ The system demonstrates:
 2. Integrate additional registries
 3. Build community around the knowledge graph
 4. Enable real MCP server execution
+5. Implement service monitoring dashboard
 
 ---
 
