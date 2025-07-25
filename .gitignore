@@ -11,5 +11,8 @@ glama_files.csv
 .coverage.*
 .coverage
 
+# ignore .env
+.env
+
 # ignore code workspace
 askg.code-workspace

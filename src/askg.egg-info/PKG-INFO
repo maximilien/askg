@@ -17,6 +17,7 @@ Requires-Dist: asyncio-throttle>=1.0.0
 Requires-Dist: langgraph>=0.0.20
 Requires-Dist: langchain>=0.1.0
 Requires-Dist: langchain-openai>=0.0.5
+Requires-Dist: openai>=1.0.0
 Provides-Extra: dev
 Requires-Dist: pytest>=7.0.0; extra == "dev"
 Requires-Dist: pytest-asyncio>=0.21.0; extra == "dev"
@@ -74,6 +75,7 @@ We aim to automate the ingestion of MCP server definitions and make the knowledg
 - **Versioned Storage**: Maintains historical snapshots with change detection
 - **Neo4j Integration**: Loads data into Neo4j graph database for advanced querying
 - **Resumable Operations**: Efficiently handles incremental updates without re-downloading unchanged data
+- **Enhanced Service Management**: Robust start/stop scripts with status monitoring and process validation
 
 ## Architecture
 
@@ -84,6 +86,8 @@ We aim to automate the ingestion of MCP server definitions and make the knowledg
 - **`src/neo4j_integration.py`**: Neo4j database integration and relationship inference
 - **`src/main.py`**: Main orchestration script
 - **`.config.yaml`**: Configuration for databases, APIs, and scraping parameters
+- **`start.sh`**: Enhanced service startup with validation and conflict detection
+- **`stop.sh`**: Comprehensive service management with status monitoring and restart capabilities
 
 ### Data Model
 
@@ -160,23 +164,79 @@ Build the complete knowledge graph:
 python src/main.py
 ```
 
-### Starting All Services
+### Service Management
+
+The project includes enhanced service management scripts for easy startup, monitoring, and shutdown of all components.
+
+#### Starting All Services
 
 Use the automated start script to run the complete AskG system:
 ```bash
 ./start.sh
 ```
 
-This will start:
+This enhanced script will:
+- **Check for conflicts**: Detect if services are already running
+- **Validate ports**: Ensure ports 3200 and 8200 are available
+- **Test Neo4j connection**: Verify database connectivity before starting
+- **Start MCP server**: Launch the semantic search server on port 8200
+- **Build and start frontend**: Compile and launch the chat interface on port 3200
+- **Validate processes**: Confirm each service is running and listening on correct ports
+- **Save process IDs**: Store PIDs for proper management
+
+**Services Started:**
 - **Frontend Chat Interface**: http://localhost:3200
 - **MCP Server**: http://localhost:8200
 - **Neo4j Database**: Local or remote (based on configuration)
 
-### Stopping All Services
+#### Checking Service Status
 
-Use the automated stop script:
+Monitor the status of all services:
 ```bash
-./stop.sh
+./stop.sh status
+```
+
+This provides detailed information about:
+- Process status (running/stopped)
+- Port availability
+- Neo4j connection status
+- PID information
+- Service URLs
+
+#### Stopping All Services
+
+Gracefully stop all services:
+```bash
+./stop.sh stop
+```
+
+This enhanced script will:
+- **Stop by PID**: Gracefully terminate processes using stored PIDs
+- **Port cleanup**: Kill any remaining processes on ports 3200 and 8200
+- **Remove PID file**: Clean up the `.askg.pid` file
+- **Handle orphaned processes**: Clean up any processes that weren't properly tracked
+
+#### Restarting Services
+
+Restart all services in one command:
+```bash
+./stop.sh restart
+```
+
+This will:
+- Stop all running services
+- Wait 2 seconds for cleanup
+- Start all services fresh
+- Validate everything is running correctly
+
+#### Service Management Commands
+
+```bash
+./start.sh                    # Start all services
+./stop.sh status              # Check service status
+./stop.sh restart             # Restart all services
+./stop.sh stop                # Stop all services
+./stop.sh help                # Show usage information
 ```
 
 ### Advanced Options
@@ -304,6 +364,14 @@ ORDER BY server_count DESC
 2. **Neo4j Connection**: Verify Neo4j is running and credentials are correct
 3. **Missing Dependencies**: Install all required packages from `requirements.txt` (recommended: use `uv pip install -r requirements.txt`)
 4. **Memory Issues**: For large datasets, consider increasing system memory or implementing pagination
+5. **Port Conflicts**: If services fail to start, check if ports 3200 or 8200 are already in use with `./stop.sh status`
+
+### Service Management Issues
+
+1. **Services won't start**: Run `./stop.sh status` to check for conflicts
+2. **Port already in use**: Use `./stop.sh stop` to clean up existing processes
+3. **Stale PID files**: The scripts automatically detect and handle stale PID files
+4. **Process validation failures**: Check logs for specific error messages
 
 ### Debug Mode
 
@@ -325,4 +393,3 @@ python src/main.py
 ## License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
->>>>>>> ba1fa0f (loading locally and remotely)

@@ -427,17 +427,26 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: background-color 0.2s;
+    transition: all 0.2s ease;
     position: relative;
     z-index: 10;
 }
 
 .resize-divider:hover {
-    background: rgba(0, 0, 0, 0.1);
+    background: rgba(102, 126, 234, 0.1);
+    width: 12px;
 }
 
 .resize-divider.resizing {
-    background: rgba(102, 126, 234, 0.3);
+    background: rgba(102, 126, 234, 0.4);
+    width: 12px;
+    box-shadow: 0 0 10px rgba(102, 126, 234, 0.3);
+}
+
+/* Add visual indicator for wheel resize */
+.resize-divider.wheel-resize {
+    background: rgba(102, 126, 234, 0.2);
+    animation: pulse 0.5s ease;
 }
 
 .resize-handle {
@@ -466,6 +475,11 @@ body {
     display: flex;
     flex-direction: column;
     transition: all 0.3s ease;
+    position: relative;
+}
+
+.knowledge-graph-sidebar:hover {
+    border-left-color: rgba(102, 126, 234, 0.3);
 }
 
 .knowledge-graph-sidebar.collapsed {
@@ -490,9 +504,9 @@ body {
 
 /* Graph visualization container */
 .graph-visualization {
-    height: 20vh; /* Reduced by 20% from 25vh to 20vh */
-    min-height: 160px; /* Reduced by 20% from 200px to 160px */
-    max-height: 240px; /* Reduced by 20% from 300px to 240px */
+    height: 50%;
+    min-height: 20%;
+    max-height: 50%;
     border: 1px solid rgba(0, 0, 0, 0.1);
     border-radius: 8px;
     margin-bottom: 1rem;
@@ -553,9 +567,43 @@ body {
     max-height: 40px;
 }
 
+.graph-visualization {
+    position: relative;
+}
+
 .graph-visualization svg {
     width: 100%;
     height: 100%;
+}
+
+.graph-resize-handle {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 8px;
+    background: rgba(102, 126, 234, 0.1);
+    cursor: row-resize;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    z-index: 10;
+}
+
+.graph-resize-handle:hover {
+    background: rgba(102, 126, 234, 0.2);
+    height: 12px;
+}
+
+.graph-resize-handle i {
+    font-size: 0.75rem;
+    color: rgba(102, 126, 234, 0.6);
+}
+
+.graph-visualization.resizing .graph-resize-handle {
+    background: rgba(102, 126, 234, 0.3);
+    height: 12px;
 }
 
 /* Server list container */
@@ -822,6 +870,18 @@ body {
     }
 }
 
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
 /* Responsive design */
 @media (max-width: 768px) {
     .chat-history-sidebar {
@@ -863,4 +923,306 @@ body {
 
 ::-webkit-scrollbar-thumb:hover {
     background: rgba(0, 0, 0, 0.3);
+}
+
+/* Modal styles */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.modal-overlay.show {
+    opacity: 1;
+    visibility: visible;
+}
+
+.modal-content {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    max-width: 90vw;
+    max-height: 90vh;
+    overflow: hidden;
+    transform: scale(0.9);
+    transition: transform 0.3s ease;
+}
+
+.modal-overlay.show .modal-content {
+    transform: scale(1);
+}
+
+.modal-header {
+    padding: 1.5rem 2rem 1rem;
+    border-bottom: 1px solid #e0e0e0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-header h3 {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #333;
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    font-size: 1.25rem;
+    color: #666;
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 6px;
+    transition: background-color 0.2s;
+}
+
+.modal-close:hover {
+    background-color: #f5f5f5;
+    color: #333;
+}
+
+.modal-body {
+    padding: 1.5rem 2rem;
+    overflow-y: auto;
+    max-height: 60vh;
+}
+
+.modal-footer {
+    padding: 1rem 2rem 1.5rem;
+    border-top: 1px solid #e0e0e0;
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+}
+
+/* Server details modal specific styles */
+.server-details-modal {
+    width: 1000px;
+    max-width: 95vw;
+}
+
+
+
+.server-details-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.server-details-name {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #333;
+    margin: 0;
+}
+
+.server-details-author {
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.server-details-description {
+    margin-bottom: 1.5rem;
+    line-height: 1.6;
+    color: #555;
+}
+
+.server-details-meta {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.server-details-meta-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border: 1px solid #e9ecef;
+}
+
+.server-details-meta-item i {
+    color: #6c757d;
+    width: 16px;
+}
+
+.server-details-meta-label {
+    font-weight: 500;
+    color: #495057;
+    font-size: 0.9rem;
+}
+
+.server-details-meta-value {
+    color: #6c757d;
+    font-size: 0.9rem;
+}
+
+.server-details-categories {
+    margin-bottom: 1.5rem;
+}
+
+.server-details-categories h4 {
+    margin-bottom: 0.75rem;
+    color: #333;
+    font-size: 1rem;
+}
+
+.server-details-categories-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.server-details-category {
+    background: #e3f2fd;
+    color: #1976d2;
+    padding: 0.25rem 0.75rem;
+    border-radius: 16px;
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+.server-details-tools {
+    margin-bottom: 1.5rem;
+}
+
+.server-details-tools h4 {
+    margin-bottom: 0.75rem;
+    color: #333;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.server-details-tools-count {
+    background: #007bff;
+    color: white;
+    padding: 0.2rem 0.6rem;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.server-details-tools-list {
+    max-height: 300px;
+    overflow-y: auto;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    background: #f8f9fa;
+}
+
+.server-details-tool {
+    padding: 1rem;
+    border-bottom: 1px solid #e0e0e0;
+    transition: background-color 0.2s;
+}
+
+.server-details-tool:last-child {
+    border-bottom: none;
+}
+
+.server-details-tool:hover {
+    background: #e9ecef;
+}
+
+.server-details-tool-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 0.5rem;
+}
+
+.server-details-tool-name {
+    font-weight: 600;
+    color: #333;
+    font-size: 1rem;
+}
+
+.server-details-tool-description {
+    color: #666;
+    font-size: 0.9rem;
+    line-height: 1.4;
+    margin-bottom: 0.5rem;
+}
+
+.server-details-tool-inputs {
+    font-size: 0.85rem;
+    color: #6c757d;
+}
+
+.server-details-tool-inputs strong {
+    color: #495057;
+}
+
+.server-details-install {
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+.server-details-install h4 {
+    margin-bottom: 0.5rem;
+    color: #333;
+    font-size: 1rem;
+}
+
+.server-details-install-command {
+    background: #2d3748;
+    color: #e2e8f0;
+    padding: 0.75rem;
+    border-radius: 6px;
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    font-size: 0.9rem;
+    overflow-x: auto;
+    white-space: nowrap;
+}
+
+/* Button styles */
+.btn {
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: background-color 0.2s;
+}
+
+.btn-primary {
+    background: #007bff;
+    color: white;
+}
+
+.btn-primary:hover {
+    background: #0056b3;
+}
+
+.btn-secondary {
+    background: #6c757d;
+    color: white;
+}
+
+.btn-secondary:hover {
+    background: #545b62;
 } 

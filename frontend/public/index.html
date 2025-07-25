@@ -6,7 +6,7 @@
     <title>askg AI Agent</title>
     <link rel="stylesheet" href="styles.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="d3.v7.min.js"></script>
 </head>
 <body>
     <div class="app-container">
@@ -150,6 +150,24 @@
             <div class="modal-footer">
                 <button class="btn btn-secondary" id="cancelSettings">Cancel</button>
                 <button class="btn btn-primary" id="saveSettings">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Server Details Modal -->
+    <div class="modal-overlay" id="serverDetailsModal">
+        <div class="modal-content server-details-modal">
+            <div class="modal-header">
+                <h3 id="serverDetailsTitle">Server Details</h3>
+                <button class="modal-close" id="closeServerDetails">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body" id="serverDetailsBody">
+                <!-- Server details will be populated here -->
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="closeServerDetailsBtn">Close</button>
             </div>
         </div>
     </div>

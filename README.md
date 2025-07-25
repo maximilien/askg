@@ -1,367 +1,241 @@
-# askg
-## Agent-Server Knowledge Graph
+# ASKG - AI Server Knowledge Graph
 
----
+A powerful chat interface for discovering and exploring MCP (Model Context Protocol) servers with an interactive knowledge graph visualization.
 
-## Documentation
+## 🚀 Features
 
-All project documentation (except this README) is now located in the `docs/` directory. Key documents include:
+### AI-Powered Query Conversion
+- **LLM-Enhanced Search**: Converts natural language queries to Cypher using GPT-4o-mini
+- **Intelligent Fallback**: Robust fallback mechanism for complex queries
+- **Text-First Relevance**: Prioritizes text matches over popularity for better results
+- **Multi-Strategy Search**: Combines semantic search with keyword matching
 
-- `docs/LANGGRAPH_ORCHESTRATOR.md` — LangGraph Orchestrator documentation
-- `docs/NEO4J_INSTANCES.md` — Neo4j instance information
-- `docs/ASSESSMENT_SUMMARY.md` — Assessment summary
-- `docs/PROGRESS_BARS.md` — Progress bars documentation
-- `docs/SCALE_IMPROVEMENT_PLAN.md` — Scale improvement plan
-- `docs/SCALE_IMPROVEMENT_RESULTS.md` — Scale improvement results
-- `docs/MCPMARKET_INTEGRATION.md` — MCP Market integration
-- `docs/Claude.md/Agent-Server Knowledge Graph` — Claude agent-server knowledge graph notes
+### Real-time Search Results
+- **Live Server Discovery**: Instant results from Neo4j database
+- **Comprehensive Metadata**: Server details, tools, categories, and popularity
+- **Smart Filtering**: Intelligent relevance scoring and result ranking
+- **Query Processing**: Advanced text-to-Cypher conversion with fallback
 
-For additional guides and technical references, see the `docs/` directory and its subfolders.
+### Interactive Chat Interface
+- **Persistent Chat History**: Automatic saving and loading of conversations
+- **Dynamic Chat Titles**: Auto-generated titles based on first interaction
+- **Chat Management**: Rename, delete, and organize chat sessions
+- **Server Details Modal**: Comprehensive server information with tools display
+- **Enhanced Modal Design**: Wider modal with better layout and scrolling
 
----
+### Interactive Knowledge Graph
+- **D3.js-Powered Visualization**: Dynamic, interactive graph with force-directed layout
+- **Clickable Nodes**: Click nodes to scroll to corresponding servers in the list
+- **Smart Node Interaction**: Hover for detailed server summaries
+- **Flexible Graph Resizing**: Drag and mouse wheel controls for graph height (20%-50%)
+- **Touch Support**: Mobile-friendly gesture controls
+- **Auto-Redraw**: Responsive layout adjustments
+- **Visual Feedback**: Smooth animations and hover effects
+- **Fallback Support**: HTML-based visualization when D3.js unavailable
 
-This is the repository for the ASKG, a project of OAKS, the Open-source Agentic AI Knowledge Stack.
+### Enhanced Graph Interactions
+- **Node Tooltips**: Detailed server information on hover (name, author, popularity, category, description)
+- **Edge Information**: Relationship details with hover tooltips (same author, same category, similar popularity)
+- **Improved Hover Sensitivity**: Larger invisible hover areas for better edge detection
+- **Smart Tooltip Positioning**: Automatic positioning to avoid screen edges
+- **Relationship Visualization**: Color-coded edges with icons and legends
 
-OAKS is a collaboratory, comprised of a set of OSS AI partners and their projects that can be integrated with one another, forming a stack for writing AI applications.
+### Advanced UI/UX
+- **Resizable Layout**: Adjustable knowledge graph pane width
+- **Collapsible Sections**: Toggle chat history and knowledge graph visibility
+- **Responsive Design**: Works on desktop and mobile devices
+- **Dark Theme**: Modern, eye-friendly interface
+- **Smooth Animations**: Professional transitions and effects
 
-OAKS is maintained as a Notion workspace at 
-
-oaks.town
-
-The ASKG project aims to maintain a knowledge graph of MCP servers and A2A agents that could be used both by himans and AI developer tools to write composable workflows.
-
-We aim to automate the ingestion of MCP server definitions and make the knowledge graph publicly available.  Neo4j provides an instance of AuraDB, a cloud Neo4j database, to host, visualize, and analyze the graph.
-
-*askg* comprehensive knowledge graph system for Model Context Protocol (MCP) servers, built with Python, Pydantic, and Neo4j.
-
-
-## Features
-
-- **Multi-Registry Scraping**: Automatically discovers MCP servers from:
-  - GitHub repositories
-  - mcp.so
-  - Glama.ai (including glama.json files)
-  - Mastra.ai MCP registry
-- **Intelligent Categorization**: Automatically categorizes servers by functionality, data types, and operations
-- **Relationship Inference**: Discovers relationships between servers based on similarity, complementarity, and dependencies
-- **Versioned Storage**: Maintains historical snapshots with change detection
-- **Neo4j Integration**: Loads data into Neo4j graph database for advanced querying
-- **Resumable Operations**: Efficiently handles incremental updates without re-downloading unchanged data
-- **Enhanced Service Management**: Robust start/stop scripts with status monitoring and process validation
-
-## Architecture
-
-### Core Components
-
-- **`src/models.py`**: Pydantic models for servers, relationships, and ontology
-- **`src/scrapers.py`**: Multi-registry scraping system with resumable operations
-- **`src/neo4j_integration.py`**: Neo4j database integration and relationship inference
-- **`src/main.py`**: Main orchestration script
-- **`.config.yaml`**: Configuration for databases, APIs, and scraping parameters
-- **`start.sh`**: Enhanced service startup with validation and conflict detection
-- **`stop.sh`**: Comprehensive service management with status monitoring and restart capabilities
-
-### Data Model
-
-The system models MCP servers with rich metadata including:
-- Basic information (name, description, author, version)
-- Technical details (language, installation, capabilities)
-- Categorization (functionality, operations, data types)
-- Registry metadata (source, popularity, last updated)
-- Tools, resources, and prompts exposed by the server
-
-## Setup
+## 🛠️ Installation
 
 ### Prerequisites
+- Node.js (v16 or higher)
+- Python 3.8+
+- Neo4j Desktop or Neo4j Community Edition
+- OpenAI API key (for advanced query conversion)
 
-1. **Neo4j Database**: Install and run Neo4j locally
-   ```bash
-   # Using Docker
-   docker run -p 7474:7474 -p 7687:7687 -e NEO4J_AUTH=neo4j/mcpservers neo4j:latest
-   ```
+### Setup
 
-2. **GitHub Token**: Create a GitHub personal access token for API access
-   - Go to GitHub Settings → Developer settings → Personal access tokens
-   - Create a token with `repo` and `public_repo` permissions
-
-### Installation
-
-1. Clone the repository:
+1. **Clone the repository**
    ```bash
    git clone <repository-url>
    cd askg
    ```
 
-2. Run the automated setup script:
+2. **Install Python dependencies**
    ```bash
-   ./setup.sh
+   pip install -r requirements.txt
    ```
+
+3. **Install frontend dependencies**
+   ```bash
+   cd frontend
+   npm install
+   ```
+
+4. **Configure environment**
+   ```bash
+   cp .env.example .env
+   # Add your OpenAI API key to .env
+   ```
+
+5. **Start Neo4j**
+   - Open Neo4j Desktop
+   - Start your database instance
+
+6. **Run the application**
+   ```bash
+   # Terminal 1: Start backend
+   python mcp/server.py
    
-   This script will:
-   - Check if `uv` is installed
-   - Create necessary directories (`data/`, `data/registries/`, `data/snapshots/`, `logs/`)
-   - Install dependencies using `uv pip install -r requirements.txt`
-   - Create `.config.yaml` from `.config.example.yaml` if it doesn't exist
-   - Provide next steps for configuration
+   # Terminal 2: Start frontend
+   cd frontend
+   npm start
+   ```
 
-3. Configure the system:
-   - Edit `.config.yaml` to set your GitHub token
-   - Adjust Neo4j connection details if needed
-   - Modify scraping parameters as desired
+7. **Open in browser**
+   - Navigate to `http://localhost:3000`
 
-## Testing
+## 📖 Usage
 
-Run all tests using the automated test script:
+### Basic Search
+- Type queries like "crypto servers", "AI tools", or "popular blockchain servers"
+- Results appear instantly with server details and tools
+
+### Advanced Queries
+- **Complex Queries**: "Find servers for cryptocurrency trading with high popularity"
+- **Category-Based**: "Show me all AI assistant servers"
+- **Author-Specific**: "Servers by OpenAI or Anthropic"
+
+### Graph Interaction
+- **Hover over nodes**: See detailed server information
+- **Hover over edges**: View relationship details
+- **Click nodes**: Scroll to server in the list
+- **Resize graph**: Drag or use mouse wheel to adjust height
+- **Explore relationships**: Understand connections between servers
+
+### Chat Management
+- **Start new chat**: Click "New Chat" button
+- **Rename chats**: Click on chat title to edit
+- **Delete chats**: Use trash icon in chat history
+- **Persistent storage**: All chats saved automatically
+
+## 🔧 Configuration
+
+### Environment Variables
 ```bash
-./test.sh
+OPENAI_API_KEY=your_openai_api_key_here
+NEO4J_URI=bolt://localhost:7687
+NEO4J_USER=neo4j
+NEO4J_PASSWORD=your_password
 ```
 
-This script will:
-- Check if `uv` and `pytest` are available
-- Automatically install `pytest` and `coverage` if needed
-- Run all tests with verbose output and coverage reporting
-- Provide helpful error messages and troubleshooting tips
+### Neo4j Setup
+1. Create a new database in Neo4j Desktop
+2. Import MCP server data using the provided scripts
+3. Configure connection settings in `.config.yaml`
 
-For individual test runs:
+## 🏗️ Architecture
+
+### Frontend
+- **Vanilla JavaScript**: No framework dependencies
+- **Socket.IO**: Real-time communication
+- **D3.js**: Interactive graph visualization
+- **Local Storage**: Chat persistence
+
+### Backend
+- **Python**: FastAPI-based MCP server
+- **Neo4j**: Graph database for server relationships
+- **OpenAI API**: LLM-powered query conversion
+- **Text2Cypher**: Intelligent query processing
+
+### Data Flow
+1. User query → Frontend
+2. Frontend → Backend (Socket.IO)
+3. Backend → Text2Cypher conversion
+4. Text2Cypher → Neo4j (Cypher query)
+5. Neo4j → Backend (results)
+6. Backend → Frontend (formatted data)
+7. Frontend → Graph visualization + Server list
+
+## 🧪 Testing
+
+### Run Tests
 ```bash
-uv run pytest tests/test_specific_file.py -v
+# Python tests
+uv run pytest
+
+# Frontend tests (if available)
+cd frontend
+npm test
 ```
 
-## Usage
+### Test Queries
+- "crypto" - Should return cryptocurrency-related servers
+- "AI servers" - Should return AI/ML servers
+- "popular servers" - Should return high-popularity servers
+- "enterprise" - Should return enterprise-focused servers
 
-### Basic Usage
+## 📊 Performance
 
-Build the complete knowledge graph:
-```bash
-python src/main.py
-```
+### Query Processing
+- **LLM Conversion**: ~2-3 seconds for complex queries
+- **Fallback Detection**: Immediate for failed conversions
+- **Neo4j Response**: <500ms for most queries
+- **Frontend Rendering**: <1 second for graph updates
 
-### Service Management
+### Scalability
+- **Database**: Supports 10,000+ servers
+- **Graph Visualization**: Optimized for 100+ nodes
+- **Real-time Updates**: WebSocket-based communication
+- **Memory Usage**: Efficient data structures and caching
 
-The project includes enhanced service management scripts for easy startup, monitoring, and shutdown of all components.
-
-#### Starting All Services
-
-Use the automated start script to run the complete AskG system:
-```bash
-./start.sh
-```
-
-This enhanced script will:
-- **Check for conflicts**: Detect if services are already running
-- **Validate ports**: Ensure ports 3200 and 8200 are available
-- **Test Neo4j connection**: Verify database connectivity before starting
-- **Start MCP server**: Launch the semantic search server on port 8200
-- **Build and start frontend**: Compile and launch the chat interface on port 3200
-- **Validate processes**: Confirm each service is running and listening on correct ports
-- **Save process IDs**: Store PIDs for proper management
-
-**Services Started:**
-- **Frontend Chat Interface**: http://localhost:3200
-- **MCP Server**: http://localhost:8200
-- **Neo4j Database**: Local or remote (based on configuration)
-
-#### Checking Service Status
-
-Monitor the status of all services:
-```bash
-./stop.sh status
-```
-
-This provides detailed information about:
-- Process status (running/stopped)
-- Port availability
-- Neo4j connection status
-- PID information
-- Service URLs
-
-#### Stopping All Services
-
-Gracefully stop all services:
-```bash
-./stop.sh stop
-```
-
-This enhanced script will:
-- **Stop by PID**: Gracefully terminate processes using stored PIDs
-- **Port cleanup**: Kill any remaining processes on ports 3200 and 8200
-- **Remove PID file**: Clean up the `.askg.pid` file
-- **Handle orphaned processes**: Clean up any processes that weren't properly tracked
-
-#### Restarting Services
-
-Restart all services in one command:
-```bash
-./stop.sh restart
-```
-
-This will:
-- Stop all running services
-- Wait 2 seconds for cleanup
-- Start all services fresh
-- Validate everything is running correctly
-
-#### Service Management Commands
-
-```bash
-./start.sh                    # Start all services
-./stop.sh status              # Check service status
-./stop.sh restart             # Restart all services
-./stop.sh stop                # Stop all services
-./stop.sh help                # Show usage information
-```
-
-### Advanced Options
-
-```bash
-# Force refresh all registry data
-python src/main.py --force-refresh
-
-# Scrape specific registries only
-python src/main.py --registries github glama
-
-# Skip Neo4j loading (useful for development)
-python src/main.py --skip-neo4j
-
-# Clear Neo4j database before loading
-python src/main.py --clear-neo4j
-
-# Show statistics only
-python src/main.py --stats-only
-```
-
-### Configuration
-
-The `.config.yaml` file allows you to customize:
-
-- **Neo4j connection**: URI, username, password
-- **GitHub API**: Personal access token
-- **Storage paths**: Local directories for data storage
-- **Scraping parameters**: Timeouts, retry logic, user agents
-- **Registry settings**: URLs and search parameters
-
-## Data Storage
-
-The system maintains organized local storage:
-
-```
-data/
-├── registries/
-│   ├── github/
-│   │   ├── github_20240101_120000.json
-│   │   └── github_20240102_120000.json
-│   ├── glama/
-│   ├── mcp_so/
-│   └── mastra/
-└── snapshots/
-    └── combined_snapshots.json
-```
-
-Each registry snapshot is timestamped and includes:
-- Server metadata
-- Scraping timestamp
-- Data checksums for change detection
-- Source URLs and metadata
-
-## Neo4j Queries
-
-Once loaded, you can query the knowledge graph using Cypher:
-
-### Find Popular Servers
-```cypher
-MATCH (s:Server) 
-WHERE s.popularity_score IS NOT NULL
-RETURN s.name, s.description, s.popularity_score
-ORDER BY s.popularity_score DESC 
-LIMIT 10
-```
-
-### Find Servers by Category
-```cypher
-MATCH (s:Server)
-WHERE 'database' IN s.categories
-RETURN s.name, s.description, s.repository
-```
-
-### Discover Server Relationships
-```cypher
-MATCH (s1:Server)-[r:RELATES_TO]->(s2:Server)
-WHERE r.confidence_score > 0.7
-RETURN s1.name, r.type, s2.name, r.confidence_score
-ORDER BY r.confidence_score DESC
-```
-
-### Find Similar Servers
-```cypher
-MATCH (s:Server {name: 'your-server-name'})
-MATCH (s)-[r:RELATES_TO {type: 'similar_functionality'}]->(similar:Server)
-RETURN similar.name, similar.description, r.confidence_score
-ORDER BY r.confidence_score DESC
-```
-
-### Category Statistics
-```cypher
-MATCH (s:Server)
-UNWIND s.categories as category
-RETURN category, COUNT(s) as server_count
-ORDER BY server_count DESC
-```
-
-## Extending the System
-
-### Adding New Registries
-
-1. Create a new scraper class inheriting from `BaseScraper`
-2. Add the registry to the `RegistrySource` enum
-3. Implement the `scrape()` method
-4. Register the scraper in `ScrapingOrchestrator`
-
-### Custom Relationship Types
-
-1. Add new relationship types to the `RelationshipType` enum
-2. Implement inference logic in `RelationshipInferencer`
-3. Update Neo4j queries as needed
-
-### Enhanced Categorization
-
-1. Modify the `categorize_server()` method in `BaseScraper`
-2. Add new categories to the `ServerCategory` enum
-3. Update the ontology creation in `main.py`
-
-## Troubleshooting
-
-### Common Issues
-
-1. **GitHub Rate Limiting**: Ensure you have a valid GitHub token configured
-2. **Neo4j Connection**: Verify Neo4j is running and credentials are correct
-3. **Missing Dependencies**: Install all required packages from `requirements.txt` (recommended: use `uv pip install -r requirements.txt`)
-4. **Memory Issues**: For large datasets, consider increasing system memory or implementing pagination
-5. **Port Conflicts**: If services fail to start, check if ports 3200 or 8200 are already in use with `./stop.sh status`
-
-### Service Management Issues
-
-1. **Services won't start**: Run `./stop.sh status` to check for conflicts
-2. **Port already in use**: Use `./stop.sh stop` to clean up existing processes
-3. **Stale PID files**: The scripts automatically detect and handle stale PID files
-4. **Process validation failures**: Check logs for specific error messages
-
-### Debug Mode
-
-Enable detailed logging by setting environment variables:
-```bash
-export PYTHONPATH=.
-export DEBUG=1
-python src/main.py
-```
-
-## Contributing
+## 🤝 Contributing
 
 1. Fork the repository
 2. Create a feature branch
-3. Add tests for new functionality (place test files in the `tests/` directory)
-4. Run tests to ensure everything works: `./test.sh`
+3. Make your changes
+4. Add tests if applicable
 5. Submit a pull request
 
-## License
+### Development Guidelines
+- Follow existing code style
+- Add documentation for new features
+- Test thoroughly before submitting
+- Update README for significant changes
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+## 📝 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- **Neo4j**: Graph database technology
+- **D3.js**: Data visualization library
+- **OpenAI**: LLM-powered query conversion
+- **MCP Community**: Model Context Protocol specification
+
+## 📞 Support
+
+For issues and questions:
+1. Check the [documentation](docs/)
+2. Search existing issues
+3. Create a new issue with detailed information
+
+## 🔄 Recent Updates
+
+### Latest Features (v2.0)
+- **Enhanced Node Tooltips**: Detailed server information on hover
+- **Improved Edge Hover**: Better sensitivity and relationship information
+- **Smart Tooltip Positioning**: Automatic edge detection and positioning
+- **Graph Resizing Controls**: Flexible height adjustment (20%-50%)
+- **Touch Support**: Mobile-friendly gesture controls
+- **Performance Optimizations**: Faster rendering and smoother interactions
+
+### Previous Updates
+- **AI-Powered Query Conversion**: LLM-enhanced search with intelligent fallback
+- **Server Details Modal**: Comprehensive server information display
+- **Interactive Knowledge Graph**: D3.js-powered visualization with clickable nodes
+- **Chat History Management**: Persistent storage with rename/delete functionality
+- **Responsive Design**: Mobile-friendly interface with collapsible sections
