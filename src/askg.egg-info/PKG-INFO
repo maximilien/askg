@@ -3,22 +3,26 @@ Name: askg
 Version: 0.1.0
 Summary: Agent-Server Knowledge Graph
 Author: ASKG Team
-Requires-Python: >=3.10
+Requires-Python: >=3.9
 Description-Content-Type: text/markdown
 License-File: LICENSE
 Requires-Dist: pydantic>=2.0.0
 Requires-Dist: neo4j>=5.0.0
 Requires-Dist: aiohttp>=3.8.0
 Requires-Dist: beautifulsoup4>=4.11.0
+Requires-Dist: requests>=2.28.0
 Requires-Dist: pyyaml>=6.0
-Requires-Dist: tqdm>=4.65.0
-Requires-Dist: langgraph>=0.0.40
-Requires-Dist: langchain-core>=0.1.0
+Requires-Dist: python-dotenv>=0.19.0
+Requires-Dist: asyncio-throttle>=1.0.0
+Requires-Dist: langgraph>=0.0.20
+Requires-Dist: langchain>=0.1.0
+Requires-Dist: langchain-openai>=0.0.5
 Provides-Extra: dev
 Requires-Dist: pytest>=7.0.0; extra == "dev"
 Requires-Dist: pytest-asyncio>=0.21.0; extra == "dev"
 Requires-Dist: pytest-cov>=4.0.0; extra == "dev"
-Requires-Dist: mcp>=1.0.0; extra == "dev"
+Requires-Dist: black>=22.0.0; extra == "dev"
+Requires-Dist: ruff>=0.1.0; extra == "dev"
 Dynamic: license-file
 
 # askg
@@ -154,6 +158,25 @@ uv run pytest tests/test_specific_file.py -v
 Build the complete knowledge graph:
 ```bash
 python src/main.py
+```
+
+### Starting All Services
+
+Use the automated start script to run the complete AskG system:
+```bash
+./start.sh
+```
+
+This will start:
+- **Frontend Chat Interface**: http://localhost:3200
+- **MCP Server**: http://localhost:8200
+- **Neo4j Database**: Local or remote (based on configuration)
+
+### Stopping All Services
+
+Use the automated stop script:
+```bash
+./stop.sh
 ```
 
 ### Advanced Options

@@ -23,13 +23,183 @@ jobs:
       with:
         version: "latest"
     
+    - name: Create test config
+      run: |
+        echo "=== CONFIG FILE CREATION STEP ==="
+        echo "Current working directory: $(pwd)"
+        echo "Files in current directory:"
+        ls -la
+        echo ""
+        
+        # Check if config file already exists
+        if [ -f .config.yaml ]; then
+          echo "✅ Config file already exists"
+          echo "Config file contents:"
+          cat .config.yaml
+        else
+          echo "📝 Creating test config file..."
+          
+          # Create config file using echo commands to avoid heredoc issues
+          echo "neo4j:" > .config.yaml
+          echo "  local:" >> .config.yaml
+          echo "    uri: \"bolt://localhost:7687\"" >> .config.yaml
+          echo "    user: \"neo4j\"" >> .config.yaml
+          echo "    password: \"password\"" >> .config.yaml
+          echo "  remote:" >> .config.yaml
+          echo "    uri: \"bolt://localhost:7687\"" >> .config.yaml
+          echo "    user: \"neo4j\"" >> .config.yaml
+          echo "    password: \"password\"" >> .config.yaml
+          echo "" >> .config.yaml
+          echo "github:" >> .config.yaml
+          echo "  token: \"test_token\"" >> .config.yaml
+          echo "" >> .config.yaml
+          echo "storage:" >> .config.yaml
+          echo "  base_path: \"./data\"" >> .config.yaml
+          echo "  registries_path: \"./data/registries\"" >> .config.yaml
+          echo "  snapshots_path: \"./data/snapshots\"" >> .config.yaml
+          echo "  master_path: \"./data/master\"" >> .config.yaml
+          echo "" >> .config.yaml
+          echo "scraping:" >> .config.yaml
+          echo "  max_retries: 3" >> .config.yaml
+          echo "  retry_delay: 5" >> .config.yaml
+          echo "  timeout: 30" >> .config.yaml
+          echo "  user_agent: \"MCP-Knowledge-Graph-Scraper/1.0\"" >> .config.yaml
+          echo "" >> .config.yaml
+          echo "registries:" >> .config.yaml
+          echo "  github:" >> .config.yaml
+          echo "    search_query: \"mcp server\"" >> .config.yaml
+          echo "    topics: [\"mcp\", \"model-context-protocol\"]" >> .config.yaml
+          echo "  mcp_so:" >> .config.yaml
+          echo "    base_url: \"https://mcp.so\"" >> .config.yaml
+          echo "  glama:" >> .config.yaml
+          echo "    base_url: \"https://glama.ai/mcp\"" >> .config.yaml
+          echo "    search_patterns: [\"glama.json\"]" >> .config.yaml
+          echo "  mcp_market:" >> .config.yaml
+          echo "    base_url: \"https://mcpmarket.com\"" >> .config.yaml
+          
+          echo "✅ Test config file created"
+          echo "Config file contents:"
+          cat .config.yaml
+          echo ""
+          echo "Config file verification:"
+          if [ -f .config.yaml ]; then
+            echo "- File exists: YES"
+            echo "- File size: $(wc -c < .config.yaml) bytes"
+            echo "- File permissions: $(ls -la .config.yaml)"
+          else
+            echo "- File exists: NO"
+          fi
+        fi
+        
+        echo ""
+        echo "=== FINAL VERIFICATION ==="
+        echo "All files in current directory:"
+        ls -la
+        echo ""
+        echo "Config file status:"
+        if [ -f .config.yaml ]; then
+          echo "✅ .config.yaml exists and is readable"
+          echo "   Size: $(wc -c < .config.yaml) bytes"
+          echo "   Permissions: $(ls -la .config.yaml)"
+        else
+          echo "❌ .config.yaml does not exist"
+          echo "   Available config files:"
+          ls -la *.yaml 2>/dev/null || echo "   No .yaml files found"
+          
+          # Try to copy example config as fallback
+          if [ -f .config.example.yaml ]; then
+            echo "   Copying .config.example.yaml as fallback..."
+            cp .config.example.yaml .config.yaml
+            echo "   ✅ Copied .config.example.yaml to .config.yaml"
+          fi
+        fi
+    
+    - name: Copy example config if needed
+      run: |
+        echo "=== FALLBACK CONFIG COPY STEP ==="
+        if [ ! -f .config.yaml ] && [ -f .config.example.yaml ]; then
+          echo "📋 Copying example config as fallback..."
+          cp .config.example.yaml .config.yaml
+          echo "✅ Copied .config.example.yaml to .config.yaml"
+          echo "Config file contents:"
+          cat .config.yaml
+        else
+          echo "ℹ️  No fallback config copy needed"
+        fi
+    
     - name: Install dependencies
       run: |
+        echo "Installing dependencies with uv..."
         uv sync --dev
+        echo "Adding dev dependencies explicitly..."
+        uv add --dev pytest pytest-cov pytest-asyncio
+        echo "Verifying pytest installation..."
+        uv run python -c "import pytest; print(f'pytest version: {pytest.__version__}')" || echo "pytest import failed"
+        echo "Checking available packages..."
+        uv pip list | grep -E "(pytest|coverage)" || echo "No pytest/coverage packages found"
+        echo "Checking uv environment..."
+        uv run which python
+        uv run python -m pytest --version || echo "pytest not found"
+        echo "Listing all packages..."
+        uv pip list
+        echo "Running uv environment test..."
+        uv run python tests/test_uv_environment.py || echo "⚠️  UV environment test had issues, but continuing..."
+    
+    - name: Verify config file
+      run: |
+        echo "Verifying config file exists..."
+        if [ -f .config.yaml ]; then
+          echo "✅ Config file exists"
+          echo "Config file size: $(wc -c < .config.yaml) bytes"
+          echo "Config file permissions: $(ls -la .config.yaml)"
+        else
+          echo "❌ Config file does not exist"
+          echo "Current directory contents:"
+          ls -la
+          exit 1
+        fi
+    
+    - name: Test CI setup
+      run: |
+        echo "Testing CI setup..."
+        uv run python tests/test_ci_setup.py
+    
+    - name: Ensure config file exists
+      run: |
+        echo "=== ENSURING CONFIG FILE EXISTS ==="
+        if [ ! -f .config.yaml ]; then
+          echo "❌ Config file still doesn't exist, creating it now..."
+          
+          # Create minimal config file
+          echo "neo4j:" > .config.yaml
+          echo "  local:" >> .config.yaml
+          echo "    uri: \"bolt://localhost:7687\"" >> .config.yaml
+          echo "    user: \"neo4j\"" >> .config.yaml
+          echo "    password: \"password\"" >> .config.yaml
+          echo "github:" >> .config.yaml
+          echo "  token: \"test_token\"" >> .config.yaml
+          echo "storage:" >> .config.yaml
+          echo "  base_path: \"./data\"" >> .config.yaml
+          
+          echo "✅ Created minimal config file"
+          echo "Config file contents:"
+          cat .config.yaml
+        else
+          echo "✅ Config file exists"
+        fi
     
     - name: Run tests
       run: |
-        uv run pytest -v --cov=src --cov-report=xml
+        echo "Running tests with uv..."
+        # Try to run pytest with uv
+        if uv run python -m pytest --version; then
+          echo "pytest found in uv environment, running tests..."
+          uv run python -m pytest -v --cov=src --cov-report=xml
+        else
+          echo "pytest not found in uv environment, installing directly..."
+          uv pip install pytest pytest-cov pytest-asyncio
+          uv run python -m pytest -v --cov=src --cov-report=xml
+        fi
     
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v3

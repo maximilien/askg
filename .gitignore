@@ -9,6 +9,7 @@ glama_files.csv
 # ignore temp files
 .askg.pid
 .coverage.*
+.coverage
 
 # ignore code workspace
 askg.code-workspace

@@ -1,6 +1,7 @@
 from datetime import datetime
 from enum import Enum
-from typing import List, Optional, Dict, Any, Union
+from typing import Any, Dict, List, Optional, Union
+
 from pydantic import BaseModel, HttpUrl, validator
 
 
@@ -39,57 +40,57 @@ class RegistrySource(str, Enum):
 
 class MCPTool(BaseModel):
     name: str
-    description: Optional[str] = None
-    parameters: Optional[Dict[str, Any]] = None
+    description: str | None = None
+    parameters: dict[str, Any] | None = None
 
 
 class MCPResource(BaseModel):
     uri: str
-    name: Optional[str] = None
-    description: Optional[str] = None
-    mime_type: Optional[str] = None
+    name: str | None = None
+    description: str | None = None
+    mime_type: str | None = None
 
 
 class MCPPrompt(BaseModel):
     name: str
-    description: Optional[str] = None
-    arguments: Optional[List[Dict[str, Any]]] = None
+    description: str | None = None
+    arguments: list[dict[str, Any]] | None = None
 
 
 class MCPServer(BaseModel):
     id: str
     name: str
-    description: Optional[str] = None
-    version: Optional[str] = None
-    author: Optional[str] = None
-    license: Optional[str] = None
-    homepage: Optional[HttpUrl] = None
-    repository: Optional[HttpUrl] = None
-    
+    description: str | None = None
+    version: str | None = None
+    author: str | None = None
+    license: str | None = None
+    homepage: HttpUrl | None = None
+    repository: HttpUrl | None = None
+
     # Technical details
-    implementation_language: Optional[str] = None
-    runtime_requirements: Optional[List[str]] = None
-    installation_command: Optional[str] = None
-    
+    implementation_language: str | None = None
+    runtime_requirements: list[str] | None = None
+    installation_command: str | None = None
+
     # Capabilities
-    tools: Optional[List[MCPTool]] = None
-    resources: Optional[List[MCPResource]] = None
-    prompts: Optional[List[MCPPrompt]] = None
-    
+    tools: list[MCPTool] | None = None
+    resources: list[MCPResource] | None = None
+    prompts: list[MCPPrompt] | None = None
+
     # Categorization
-    categories: List[ServerCategory] = []
-    operations: List[OperationType] = []
-    data_types: List[str] = []
-    
+    categories: list[ServerCategory] = []
+    operations: list[OperationType] = []
+    data_types: list[str] = []
+
     # Metadata
     registry_source: RegistrySource
-    source_url: Optional[HttpUrl] = None
-    last_updated: Optional[datetime] = None
-    popularity_score: Optional[int] = None
-    download_count: Optional[int] = None
-    
+    source_url: HttpUrl | None = None
+    last_updated: datetime | None = None
+    popularity_score: int | None = None
+    download_count: int | None = None
+
     # Raw data for reference
-    raw_metadata: Optional[Dict[str, Any]] = None
+    raw_metadata: dict[str, Any] | None = None
 
 
 class RelationshipType(str, Enum):
@@ -110,14 +111,14 @@ class ServerRelationship(BaseModel):
     target_server_id: str
     relationship_type: RelationshipType
     confidence_score: float  # 0.0 to 1.0
-    description: Optional[str] = None
-    evidence: Optional[List[str]] = None  # Why this relationship exists
+    description: str | None = None
+    evidence: list[str] | None = None  # Why this relationship exists
     created_at: datetime
-    
-    @validator('confidence_score')
+
+    @validator("confidence_score")
     def validate_confidence(cls, v):
         if not 0.0 <= v <= 1.0:
-            raise ValueError('Confidence score must be between 0.0 and 1.0')
+            raise ValueError("Confidence score must be between 0.0 and 1.0")
         return v
 
 
@@ -125,40 +126,40 @@ class OntologyCategory(BaseModel):
     id: str
     name: str
     description: str
-    parent_category_id: Optional[str] = None
-    subcategories: List[str] = []
-    servers: List[str] = []  # Server IDs
-    
+    parent_category_id: str | None = None
+    subcategories: list[str] = []
+    servers: list[str] = []  # Server IDs
+
     # Ontological properties
-    data_domains: List[str] = []  # What kind of data
-    operational_patterns: List[str] = []  # How they operate
-    integration_patterns: List[str] = []  # How they connect
+    data_domains: list[str] = []  # What kind of data
+    operational_patterns: list[str] = []  # How they operate
+    integration_patterns: list[str] = []  # How they connect
 
 
 class RegistrySnapshot(BaseModel):
     registry_source: RegistrySource
     snapshot_date: datetime
-    url: Optional[HttpUrl] = None
+    url: HttpUrl | None = None
     servers_count: int
-    servers: List[MCPServer]
-    metadata: Optional[Dict[str, Any]] = None
-    checksum: Optional[str] = None
+    servers: list[MCPServer]
+    metadata: dict[str, Any] | None = None
+    checksum: str | None = None
 
 
 class KnowledgeGraph(BaseModel):
     created_at: datetime
     last_updated: datetime
-    servers: List[MCPServer]
-    relationships: List[ServerRelationship]
-    categories: List[OntologyCategory]
-    registry_snapshots: List[RegistrySnapshot]
-    
-    def get_server_by_id(self, server_id: str) -> Optional[MCPServer]:
+    servers: list[MCPServer]
+    relationships: list[ServerRelationship]
+    categories: list[OntologyCategory]
+    registry_snapshots: list[RegistrySnapshot]
+
+    def get_server_by_id(self, server_id: str) -> MCPServer | None:
         return next((s for s in self.servers if s.id == server_id), None)
-    
-    def get_servers_by_category(self, category: ServerCategory) -> List[MCPServer]:
+
+    def get_servers_by_category(self, category: ServerCategory) -> list[MCPServer]:
         return [s for s in self.servers if category in s.categories]
-    
-    def get_relationships_for_server(self, server_id: str) -> List[ServerRelationship]:
-        return [r for r in self.relationships 
+
+    def get_relationships_for_server(self, server_id: str) -> list[ServerRelationship]:
+        return [r for r in self.relationships
                 if r.source_server_id == server_id or r.target_server_id == server_id]

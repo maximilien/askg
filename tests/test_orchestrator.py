@@ -7,6 +7,7 @@ Demonstrates the system with various task types
 import asyncio
 import sys
 import os
+import pytest
 
 # Add the current directory to Python path
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -19,6 +20,10 @@ async def test_single_task():
     """Test a single task execution"""
     print("🧪 Testing single task execution")
     print("=" * 50)
+    
+    # Check if config file exists
+    if not os.path.exists('.config.yaml'):
+        pytest.skip("Config file .config.yaml not found - skipping Neo4j tests")
     
     # Initialize Neo4j manager (using local instance)
     neo4j_manager = Neo4jManager(instance="local")
@@ -64,6 +69,10 @@ async def test_multiple_tasks():
     print("🧪 Testing multiple task types")
     print("=" * 50)
     
+    # Check if config file exists
+    if not os.path.exists('.config.yaml'):
+        pytest.skip("Config file .config.yaml not found - skipping Neo4j tests")
+    
     # Initialize Neo4j manager (using local instance)
     neo4j_manager = Neo4jManager(instance="local")
     
@@ -108,6 +117,10 @@ async def test_complex_pipeline():
     """Test a complex multi-step pipeline"""
     print("🧪 Testing complex pipeline")
     print("=" * 50)
+    
+    # Check if config file exists
+    if not os.path.exists('.config.yaml'):
+        pytest.skip("Config file .config.yaml not found - skipping Neo4j tests")
     
     # Initialize Neo4j manager (using local instance)
     neo4j_manager = Neo4jManager(instance="local")
