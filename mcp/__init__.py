@@ -1,5 +1,4 @@
-"""
-ASKG MCP Server Package
+"""ASKG MCP Server Package
 
 This package provides a Model Context Protocol (MCP) server implementation
 for the ASKG (Agent-Server Knowledge Graph) project.
@@ -12,7 +11,7 @@ from .mcp_server import (
     ASKGMCPServer,
     ServerSearchRequest,
     ServerSearchResult,
-    create_mcp_server
+    create_mcp_server,
 )
 
 __version__ = "1.0.0"
@@ -20,7 +19,7 @@ __author__ = "ASKG Team"
 
 __all__ = [
     "ASKGMCPServer",
-    "ServerSearchRequest", 
+    "ServerSearchRequest",
     "ServerSearchResult",
-    "create_mcp_server"
-] 
+    "create_mcp_server",
+]
