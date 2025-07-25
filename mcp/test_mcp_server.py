@@ -14,9 +14,20 @@ import pytest
 # Add parent src directory to path
 sys.path.append(str(Path(__file__).parent.parent / "src"))
 
+# Import from local module
 from mcp_server import ASKGMCPServer, ServerSearchRequest, ServerSearchResult
 
 from models import MCPServer, OperationType, RegistrySource, ServerCategory
+
+def get_config_path():
+    """Get the path to the config file"""
+    config_path = Path(__file__).parent.parent / ".config.yaml"
+    if not config_path.exists():
+        # Try example config
+        example_path = Path(__file__).parent.parent / ".config.example.yaml"
+        if example_path.exists():
+            return str(example_path)
+    return str(config_path)
 
 
 class TestASKGMCPServer:
@@ -94,7 +105,7 @@ class TestASKGMCPServer:
         mock_driver_instance.session.return_value = mock_session
         mock_driver.return_value = mock_driver_instance
 
-        with ASKGMCPServer("../.config.yaml", "local") as server:
+        with ASKGMCPServer(get_config_path(), "local") as server:
             assert server.config == mock_config
             assert server.instance == "local"
             assert server.driver is not None
@@ -105,7 +116,7 @@ class TestASKGMCPServer:
         mock_yaml_load.side_effect = FileNotFoundError("Config file not found")
 
         with pytest.raises(FileNotFoundError):
-            ASKGMCPServer("../.config.yaml", "local")
+            ASKGMCPServer(get_config_path(), "local")
 
     @patch("mcp_server.yaml.safe_load")
     @patch("mcp_server.GraphDatabase.driver")
@@ -121,12 +132,12 @@ class TestASKGMCPServer:
         mock_driver.return_value = mock_driver_instance
 
         with pytest.raises(Exception, match="Connection failed"):
-            ASKGMCPServer("../.config.yaml", "local")
+            ASKGMCPServer(get_config_path(), "local")
 
     def test_extract_search_terms_database(self):
         """Test search term extraction for database queries"""
         with patch("mcp_server.yaml.safe_load"), patch("mcp_server.GraphDatabase.driver"):
-            server = ASKGMCPServer("../.config.yaml", "local")
+            server = ASKGMCPServer(get_config_path(), "local")
 
             terms = server._extract_search_terms("Find database servers for SQL operations")
 
@@ -138,7 +149,7 @@ class TestASKGMCPServer:
     def test_extract_search_terms_file_system(self):
         """Test search term extraction for file system queries"""
         with patch("mcp_server.yaml.safe_load"), patch("mcp_server.GraphDatabase.driver"):
-            server = ASKGMCPServer("../.config.yaml", "local")
+            server = ASKGMCPServer(get_config_path(), "local")
 
             terms = server._extract_search_terms("Show me file system servers for reading and writing files")
 
@@ -150,7 +161,7 @@ class TestASKGMCPServer:
     def test_extract_search_terms_api_integration(self):
         """Test search term extraction for API integration queries"""
         with patch("mcp_server.yaml.safe_load"), patch("mcp_server.GraphDatabase.driver"):
-            server = ASKGMCPServer("../.config.yaml", "local")
+            server = ASKGMCPServer(get_config_path(), "local")
 
             terms = server._extract_search_terms("I need API integration servers for REST APIs")
 
@@ -161,7 +172,7 @@ class TestASKGMCPServer:
     def test_build_search_query(self):
         """Test Cypher query building"""
         with patch("mcp_server.yaml.safe_load"), patch("mcp_server.GraphDatabase.driver"):
-            server = ASKGMCPServer("../.config.yaml", "local")
+            server = ASKGMCPServer(get_config_path(), "local")
 
             search_terms = {
                 "categories": ["database"],
@@ -185,7 +196,7 @@ class TestASKGMCPServer:
     def test_convert_to_mcp_server_success(self, sample_server_data):
         """Test successful conversion of Neo4j record to MCPServer"""
         with patch("mcp_server.yaml.safe_load"), patch("mcp_server.GraphDatabase.driver"):
-            server = ASKGMCPServer("../.config.yaml", "local")
+            server = ASKGMCPServer(get_config_path(), "local")
 
             mcp_server = server._convert_to_mcp_server(sample_server_data)
 
@@ -202,7 +213,7 @@ class TestASKGMCPServer:
     def test_convert_to_mcp_server_invalid_data(self):
         """Test conversion with invalid data"""
         with patch("mcp_server.yaml.safe_load"), patch("mcp_server.GraphDatabase.driver"):
-            server = ASKGMCPServer("../.config.yaml", "local")
+            server = ASKGMCPServer(get_config_path(), "local")
 
             # Test with missing required fields
             invalid_data = {"s": {"name": "Test"}}  # Missing id
@@ -251,7 +262,7 @@ class TestASKGMCPServer:
             # Mock empty search result
             mock_session.run.return_value = []
 
-            server = ASKGMCPServer("../.config.yaml", "local")
+            server = ASKGMCPServer(get_config_path(), "local")
 
             request = ServerSearchRequest(
                 prompt="Find nonexistent servers",
@@ -279,7 +290,7 @@ class TestASKGMCPServer:
                 Exception("Database error"),  # Second call for search
             ]
 
-            server = ASKGMCPServer("../.config.yaml", "local")
+            server = ASKGMCPServer(get_config_path(), "local")
 
             request = ServerSearchRequest(
                 prompt="Find database servers",

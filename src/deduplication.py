@@ -7,7 +7,26 @@ from difflib import SequenceMatcher
 from typing import Dict, List, Optional, Set, Tuple
 from urllib.parse import urlparse
 
-from tqdm import tqdm
+try:
+    from tqdm import tqdm
+except ImportError:
+    # Fallback for environments without tqdm
+    class tqdm:
+        def __init__(self, iterable=None, **kwargs):
+            self.iterable = iterable
+            self.desc = kwargs.get('desc', '')
+            self.unit = kwargs.get('unit', '')
+            self.colour = kwargs.get('colour', '')
+            self.bar_format = kwargs.get('bar_format', '')
+        
+        def __iter__(self):
+            return iter(self.iterable) if self.iterable else iter([])
+        
+        def set_postfix_str(self, text):
+            pass
+        
+        def close(self):
+            pass
 
 from models import MCPServer, RegistrySource
 

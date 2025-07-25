@@ -5,6 +5,7 @@ Test fast loading mode with a subset of servers
 
 import json
 import asyncio
+import os
 import pytest
 from pathlib import Path
 from datetime import datetime
@@ -43,6 +44,10 @@ def create_mock_servers(count: int = 5) -> List[MCPServer]:
 
 def check_neo4j_available():
     """Check if Neo4j is available for testing"""
+    # Check if config file exists first
+    if not os.path.exists('.config.yaml'):
+        return False
+    
     try:
         with Neo4jManager(instance="local") as neo4j:
             # Try a simple query to test connection

@@ -3,6 +3,7 @@
 Test the Neo4j configuration loading for both local and remote instances
 """
 
+import os
 import yaml
 import pytest
 from neo4j_integration import Neo4jManager
@@ -11,7 +12,11 @@ def test_config():
     """Test loading both local and remote configurations"""
     
     # Test config loading
-    with open('.config.yaml', 'r') as f:
+    config_path = '.config.yaml'
+    if not os.path.exists(config_path):
+        pytest.skip(f"Config file {config_path} not found - skipping config test")
+    
+    with open(config_path, 'r') as f:
         config = yaml.safe_load(f)
     
     print("📋 Testing Neo4j configuration loading...")

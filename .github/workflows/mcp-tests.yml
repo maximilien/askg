@@ -15,14 +15,55 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     
-    - name: Setup uv
-      uses: astral-sh/setup-uv@v1
+    - name: Setup Python
+      uses: actions/setup-python@v4
       with:
-        version: "latest"
+        python-version: '3.11'
     
-    - name: Install dependencies
+    - name: Install MCP dependencies
       run: |
-        uv sync --all-extras
+        cd mcp
+        echo "Upgrading pip..."
+        python -m pip install --upgrade pip
+        echo "Installing dependencies from requirements.txt..."
+        pip install --verbose --no-cache-dir -r requirements.txt
+        echo "Installing additional test dependencies..."
+        pip install --verbose --no-cache-dir pytest pytest-asyncio
+        echo "Ensuring PyYAML is installed..."
+        pip install --verbose --no-cache-dir PyYAML
+        echo "Verifying installations..."
+        pip list | grep -E "(neo4j|pydantic|pyyaml|aiohttp|pytest)"
+        echo "Testing imports..."
+        python -c "import yaml; print('yaml import OK')"
+        python -c "import neo4j; print('neo4j import OK')"
+        python -c "import pydantic; print('pydantic import OK')"
+        python -c "import aiohttp; print('aiohttp import OK')"
+        python -c "import pytest; print('pytest import OK')"
+    
+    - name: Test requirements
+      run: |
+        cd mcp
+        python test_requirements.py
+    
+    - name: Test yaml
+      run: |
+        cd mcp
+        python test_yaml.py
+    
+    - name: Test environment
+      run: |
+        cd mcp
+        python test_environment.py
+    
+    - name: Test config
+      run: |
+        cd mcp
+        python test_config.py
+    
+    - name: Test file structure
+      run: |
+        cd mcp
+        python test_file_structure.py
     
     - name: Run MCP server tests
       run: |

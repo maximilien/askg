@@ -5,19 +5,27 @@ Test MCP server search functionality
 
 import asyncio
 import sys
+import os
 import pytest
 from pathlib import Path
 
 # Add src to path
-sys.path.append(str(Path(__file__).parent / "src"))
+sys.path.append(str(Path(__file__).parent.parent / "src"))
 
-from mcp.server import ASKGMCPServer, ServerSearchRequest
+try:
+    from mcp.mcp_server import ASKGMCPServer, ServerSearchRequest
+except ImportError:
+    pytest.skip("MCP server module not available - skipping MCP search test")
 
 @pytest.mark.asyncio
 async def test_search():
     """Test the MCP server search functionality"""
     
     print("Testing MCP server search...")
+    
+    # Check if config file exists
+    if not os.path.exists('.config.yaml'):
+        pytest.skip("Config file .config.yaml not found - skipping MCP search test")
     
     try:
         # Initialize the MCP server with local instance

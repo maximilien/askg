@@ -16,9 +16,11 @@ def run_pytest():
     try:
         result = subprocess.run([
             sys.executable, "-m", "pytest",
+            "test_basic.py",
             "test_mcp_server.py",
             "-v",
             "--tb=short",
+            "--import-mode=importlib",
         ], check=False, capture_output=True, text=True, cwd=Path(__file__).parent)
 
         print("STDOUT:")
@@ -44,21 +46,20 @@ def test_imports():
     print("Testing imports...")
 
     try:
-        # Test basic imports
-        from mcp_server import ASKGMCPServer, ServerSearchRequest, ServerSearchResult
-        print("✅ Basic imports successful")
+        # Run the dedicated import test
+        result = subprocess.run([
+            sys.executable, "test_imports_simple.py"
+        ], check=False, capture_output=True, text=True, cwd=Path(__file__).parent)
 
-        # Test client example imports
-        from client_example import interactive_search, search_example, test_connection
-        print("✅ Client example imports successful")
+        print(result.stdout)
+        if result.stderr:
+            print("STDERR:")
+            print(result.stderr)
 
-        return True
+        return result.returncode == 0
 
-    except ImportError as e:
-        print(f"❌ Import error: {e}")
-        return False
     except Exception as e:
-        print(f"❌ Unexpected error during import: {e}")
+        print(f"❌ Error running import test: {e}")
         return False
 
 def test_config_loading():
@@ -68,18 +69,29 @@ def test_config_loading():
     try:
         import yaml
         config_path = Path(__file__).parent.parent / ".config.yaml"
+        example_config_path = Path(__file__).parent.parent / ".config.example.yaml"
 
         if not config_path.exists():
             print("⚠️  Configuration file not found, creating test config...")
-            test_config = {
-                "neo4j": {
-                    "local": {
-                        "uri": "bolt://localhost:7687",
-                        "user": "neo4j",
-                        "password": "password",
+            
+            # Try to copy from example config first
+            if example_config_path.exists():
+                with open(example_config_path, "r") as f:
+                    test_config = yaml.safe_load(f)
+                print("✅ Copied from example config")
+            else:
+                # Create minimal test config
+                test_config = {
+                    "neo4j": {
+                        "local": {
+                            "uri": "bolt://localhost:7687",
+                            "user": "neo4j",
+                            "password": "password",
+                        },
                     },
-                },
-            }
+                }
+                print("✅ Created minimal test config")
+            
             with open(config_path, "w") as f:
                 yaml.dump(test_config, f)
             print("✅ Test configuration created")
@@ -92,6 +104,27 @@ def test_config_loading():
         print(f"❌ Configuration test failed: {e}")
         return False
 
+def test_config_file():
+    """Test configuration file functionality"""
+    print("Testing configuration file functionality...")
+
+    try:
+        # Run the dedicated config test
+        result = subprocess.run([
+            sys.executable, "test_config.py"
+        ], check=False, capture_output=True, text=True, cwd=Path(__file__).parent)
+
+        print(result.stdout)
+        if result.stderr:
+            print("STDERR:")
+            print(result.stderr)
+
+        return result.returncode == 0
+
+    except Exception as e:
+        print(f"❌ Error running config test: {e}")
+        return False
+
 def main():
     """Main test runner"""
     print("=" * 60)
@@ -101,6 +134,7 @@ def main():
     tests = [
         ("Import Test", test_imports),
         ("Configuration Test", test_config_loading),
+        ("Config File Test", test_config_file),
         ("Pytest Tests", run_pytest),
     ]
 
