@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Clean Startup</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ccc; border-radius: 5px; }
+        .success { background-color: #d4edda; border-color: #c3e6cb; }
+        .info { background-color: #d1ecf1; border-color: #bee5eb; }
+        button { padding: 10px 15px; margin: 5px; border: none; border-radius: 3px; cursor: pointer; }
+        .btn-primary { background-color: #007bff; color: white; }
+        .btn-secondary { background-color: #6c757d; color: white; }
+        .btn-success { background-color: #28a745; color: white; }
+    </style>
+</head>
+<body>
+    <h1>askg Frontend Clean Startup Test</h1>
+    
+    <div class="test-section info">
+        <h3>Test Instructions</h3>
+        <p>This test verifies that the frontend starts with a clean chat history (no sample data).</p>
+        <ol>
+            <li>Click "Clear localStorage" to remove any existing chat history</li>
+            <li>Click "Open Frontend" to open the main application</li>
+            <li>Verify that only one "New Chat" appears in the chat history sidebar</li>
+            <li>Check that no sample chats like "Database servers" or "File system tools" are present</li>
+        </ol>
+    </div>
+    
+    <div class="test-section">
+        <h3>Test Controls</h3>
+        <button class="btn-secondary" onclick="clearLocalStorage()">Clear localStorage</button>
+        <button class="btn-primary" onclick="openFrontend()">Open Frontend</button>
+        <button class="btn-success" onclick="checkLocalStorage()">Check localStorage</button>
+    </div>
+    
+    <div class="test-section" id="results">
+        <h3>Test Results</h3>
+        <div id="localStorageContent">Click "Check localStorage" to see current state</div>
+    </div>
+
+    <script>
+        function clearLocalStorage() {
+            localStorage.removeItem('askg_chat_history');
+            localStorage.removeItem('askg_max_results');
+            document.getElementById('localStorageContent').innerHTML = 
+                '<div class="success">localStorage cleared successfully!</div>';
+        }
+        
+        function openFrontend() {
+            window.open('http://localhost:3000', '_blank');
+        }
+        
+        function checkLocalStorage() {
+            const chatHistory = localStorage.getItem('askg_chat_history');
+            const maxResults = localStorage.getItem('askg_max_results');
+            
+            let content = '<h4>Current localStorage state:</h4>';
+            content += '<p><strong>askg_chat_history:</strong> ' + (chatHistory || 'null') + '</p>';
+            content += '<p><strong>askg_max_results:</strong> ' + (maxResults || 'null') + '</p>';
+            
+            if (!chatHistory) {
+                content += '<div class="success">✅ No chat history found - clean startup ready!</div>';
+            } else {
+                try {
+                    const parsed = JSON.parse(chatHistory);
+                    if (parsed.length === 0) {
+                        content += '<div class="success">✅ Empty chat history - clean startup ready!</div>';
+                    } else {
+                        content += '<div class="info">📝 Found ' + parsed.length + ' chat(s) in history</div>';
+                        content += '<ul>';
+                        parsed.forEach(chat => {
+                            content += '<li>#' + chat.id + ': ' + chat.title + '</li>';
+                        });
+                        content += '</ul>';
+                    }
+                } catch (e) {
+                    content += '<div class="info">⚠️ Error parsing chat history: ' + e.message + '</div>';
+                }
+            }
+            
+            document.getElementById('localStorageContent').innerHTML = content;
+        }
+        
+        // Auto-check on page load
+        window.onload = function() {
+            checkLocalStorage();
+        };
+    </script>
+</body>
+</html> 

@@ -2,13 +2,22 @@ import yaml
 from neo4j import GraphDatabase
 
 # Load config
-with open('.config.yaml', 'r') as f:
+import os
+config_path = os.path.join(os.path.dirname(__file__), '..', '.config.yaml')
+with open(config_path, 'r') as f:
     config = yaml.safe_load(f)
 
-remote_config = config['neo4j']['remote']
-uri = remote_config['uri']
-user = remote_config['user']
-password = remote_config['password']
+# Use local config by default, fallback to remote if available
+if 'local' in config['neo4j']:
+    neo4j_config = config['neo4j']['local']
+elif 'remote' in config['neo4j']:
+    neo4j_config = config['neo4j']['remote']
+else:
+    raise ValueError("No Neo4j configuration found in config file")
+
+uri = neo4j_config['uri']
+user = neo4j_config['user']
+password = neo4j_config['password']
 
 print(f"Connecting to: {uri}")
 print(f"User: {user}")

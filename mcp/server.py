@@ -21,7 +21,8 @@ from pydantic import BaseModel, Field
 
 sys.path.append(str(Path(__file__).parent.parent / "src"))
 
-from models import MCPServer, OperationType, RegistrySource, ServerCategory
+from models import MCPServer, MCPTool, OperationType, RegistrySource, ServerCategory
+from text2cypher import create_text2cypher_converter
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -163,6 +164,7 @@ class ASKGMCPServer:
         self.config_path = config_path
         self.instance = instance
         self.driver = None
+        self.text2cypher = create_text2cypher_converter()
         self._load_config()
         self._auto_select_instance()
         self._connect_to_neo4j()
@@ -276,7 +278,8 @@ class ASKGMCPServer:
                 "search_terms": search_terms,
                 "prompt": request.prompt,
                 "instance": self.instance,
-                "search_strategy": "semantic_multi_faceted",
+                "search_strategy": "llm_enhanced_semantic" if self.text2cypher else "keyword_based_semantic",
+                "query_conversion": "text2cypher_llm" if self.text2cypher else "keyword_extraction",
                 "mock_data": len([s for s in mcp_servers if s.raw_metadata.get("mock", False)]) > 0,
             }
 
@@ -297,6 +300,7 @@ class ASKGMCPServer:
                 "prompt": request.prompt,
                 "instance": self.instance,
                 "search_strategy": "mock_fallback",
+                "query_conversion": "none_due_to_error",
                 "error": str(e),
                 "mock_data": True,
             }
@@ -363,8 +367,53 @@ class ASKGMCPServer:
     async def _semantic_search(self, search_terms: dict[str, Any], limit: int, min_confidence: float) -> list[dict]:
         """Perform semantic search using multiple strategies
         """
-        # Build the Cypher query based on search terms
-        cypher_query, params = self._build_search_query(search_terms, limit, min_confidence)
+        # Use text2cypher converter if available, otherwise fallback to keyword-based search
+        if self.text2cypher:
+            try:
+                # Convert the original prompt to Cypher using LLM
+                cypher_result = self.text2cypher.convert_to_cypher(
+                    search_terms["original_prompt"], 
+                    limit, 
+                    min_confidence
+                )
+                cypher_query = cypher_result["cypher"]
+                params = cypher_result["parameters"]
+                
+                logger.info(f"Using LLM-generated Cypher query: {cypher_query}")
+                logger.info(f"Query parameters: {params}")
+                
+                # Test the query to see if it returns results
+                with self.driver.session() as session:
+                    test_result = session.run(cypher_query, params)
+                    test_records = [dict(record) for record in test_result]
+                    
+                    # If no results, fall back to keyword search
+                    if not test_records:
+                        logger.info("LLM query returned no results, falling back to keyword search")
+                        fallback_result = self.text2cypher._fallback_query(
+                            search_terms["original_prompt"], 
+                            limit, 
+                            min_confidence
+                        )
+                        cypher_query = fallback_result["cypher"]
+                        params = fallback_result["parameters"]
+                        logger.info(f"Using fallback query: {cypher_query}")
+                        logger.info(f"Fallback parameters: {params}")
+                    else:
+                        logger.info(f"LLM query returned {len(test_records)} results")
+                
+            except Exception as e:
+                logger.warning(f"Text2Cypher conversion failed, falling back to keyword search: {e}")
+                fallback_result = self.text2cypher._fallback_query(
+                    search_terms["original_prompt"], 
+                    limit, 
+                    min_confidence
+                )
+                cypher_query = fallback_result["cypher"]
+                params = fallback_result["parameters"]
+        else:
+            # Fallback to keyword-based search
+            cypher_query, params = self._build_search_query(search_terms, limit, min_confidence)
 
         with self.driver.session() as session:
             result = session.run(cypher_query, params)
@@ -373,10 +422,11 @@ class ASKGMCPServer:
     def _build_search_query(self, search_terms: dict[str, Any], limit: int, min_confidence: float) -> tuple:
         """Build a Cypher query for semantic search
         """
-        # Base query
+        # Base query with tools
         cypher = """
         MATCH (s:Server)
-        WITH s,
+        OPTIONAL MATCH (s)-[:HAS_TOOL]->(t:Tool)
+        WITH s, COLLECT(t) as tools,
              // Text relevance score
              CASE 
                  WHEN toLower(s.name) CONTAINS toLower($prompt) THEN 3.0
@@ -401,11 +451,11 @@ class ASKGMCPServer:
              // Popularity bonus
              COALESCE(s.popularity_score, 0) * 0.1 as popularity_bonus
              
-        WITH s, (text_score + category_score + operation_score + popularity_bonus) as total_score
+        WITH s, tools, (text_score + category_score + operation_score + popularity_bonus) as total_score
         
         WHERE total_score >= $min_confidence
         
-        RETURN s, total_score
+        RETURN s, tools, total_score
         ORDER BY total_score DESC
         LIMIT $limit
         """
@@ -425,6 +475,7 @@ class ASKGMCPServer:
         """
         try:
             server_data = server_record["s"]
+            tools_data = server_record.get("tools", [])
             score = server_record.get("total_score", 0.0)
 
             # Convert string categories back to ServerCategory enums
@@ -444,6 +495,17 @@ class ASKGMCPServer:
                         operations.append(OperationType(op_str))
                     except ValueError:
                         operations.append(OperationType.EXECUTE)
+
+            # Convert tools data to MCPTool objects
+            tools = []
+            if tools_data:
+                for tool_data in tools_data:
+                    if tool_data:  # Skip None values
+                        tools.append(MCPTool(
+                            name=tool_data.get("name", "Unknown Tool"),
+                            description=tool_data.get("description"),
+                            parameters=tool_data.get("parameters"),
+                        ))
 
             # Convert registry source
             registry_source = RegistrySource.GITHUB  # Default to GITHUB
@@ -469,6 +531,7 @@ class ASKGMCPServer:
                 repository=str(server_data.get("repository")) if server_data.get("repository") else None,
                 implementation_language=server_data.get("implementation_language"),
                 installation_command=server_data.get("installation_command"),
+                tools=tools,  # Add tools to the server
                 categories=categories,
                 operations=operations,
                 data_types=server_data.get("data_types", []),
