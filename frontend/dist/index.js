@@ -63,10 +63,41 @@ io.on('connection', (socket) => {
         const maxResults = data.maxResults || 20;
         const mcpResult = await callMCPServer(data.content, maxResults);
         console.log('MCP server result:', mcpResult);
+        let responseContent = `I found ${mcpResult?.servers?.length || 0} MCP servers related to your query: "${data.content}".\n\n`;
+        if (mcpResult?.servers && mcpResult.servers.length > 0) {
+            const serversToShow = mcpResult.servers.slice(0, 10);
+            const hasMore = mcpResult.servers.length > 10;
+            responseContent += `**Top ${serversToShow.length} MCP Servers:**\n\n`;
+            serversToShow.forEach((server, index) => {
+                responseContent += `${index + 1}. **${server.name}**`;
+                if (server.repository) {
+                    responseContent += ` - [Repository](${server.repository})`;
+                }
+                responseContent += `\n`;
+                if (server.description) {
+                    responseContent += `   ${server.description}\n`;
+                }
+                if (server.categories && server.categories.length > 0) {
+                    const categories = server.categories.map((cat) => cat.value).join(', ');
+                    responseContent += `   **Categories:** ${categories}\n`;
+                }
+                if (server.author) {
+                    responseContent += `   **Author:** ${server.author}\n`;
+                }
+                responseContent += `\n`;
+            });
+            if (hasMore) {
+                responseContent += `*... and ${mcpResult.servers.length - 10} more servers. [Show All Servers](#show-more)*\n\n`;
+            }
+            responseContent += `Check the knowledge graph pane for detailed information and interactive exploration.`;
+        }
+        else {
+            responseContent += `No specific MCP servers found for your query. Try rephrasing or check the knowledge graph pane for available servers.`;
+        }
         const response = {
             id: Date.now().toString(),
             type: 'ai',
-            content: `I found ${mcpResult?.servers?.length || 0} MCP servers related to your query: "${data.content}". Check the knowledge graph pane for details.`,
+            content: responseContent,
             timestamp: new Date().toISOString()
         };
         socket.emit('chat_response', response);
@@ -75,7 +106,8 @@ io.on('connection', (socket) => {
             socket.emit('mcp_servers_result', {
                 servers: mcpResult.servers,
                 total_found: mcpResult.total_found,
-                search_metadata: mcpResult.search_metadata
+                search_metadata: mcpResult.search_metadata,
+                hasMore: mcpResult.servers.length > 10
             });
         }
         else {

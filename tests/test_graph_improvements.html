@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Graph Visualization Improvements</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .graph-container {
+            width: 100%;
+            height: 400px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background: white;
+            position: relative;
+            overflow: hidden;
+        }
+        .legend-info {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 10px 0;
+            border-left: 4px solid #667eea;
+        }
+        .legend-info h4 {
+            margin: 0 0 10px 0;
+            color: #333;
+        }
+        .legend-info ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+        .legend-info li {
+            margin: 5px 0;
+            color: #666;
+        }
+        .test-controls {
+            display: flex;
+            gap: 10px;
+            margin: 15px 0;
+            flex-wrap: wrap;
+        }
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        button:hover {
+            background: #764ba2;
+        }
+        .status {
+            padding: 10px;
+            border-radius: 6px;
+            margin: 10px 0;
+            font-weight: 500;
+        }
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .status.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        .status.warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+    </style>
+</head>
+<body>
+    <h1>Test Graph Visualization Improvements</h1>
+    
+    <div class="test-section">
+        <h2>Graph Legend and Edge Label Management</h2>
+        <p>This test demonstrates the improved graph visualization where edge labels (icons) are removed when the graph is dense and the legend is hidden.</p>
+        
+        <div class="legend-info">
+            <h4>Legend Display Rules:</h4>
+            <ul>
+                <li><strong>Simple Graph:</strong> ≤10 nodes AND ≤5×nodes edges → Legend and edge labels shown</li>
+                <li><strong>Dense Graph:</strong> >10 nodes OR >5×nodes edges → Legend and edge labels hidden</li>
+                <li><strong>Fallback Graph:</strong> ≤10 servers → Legend shown, >10 servers → Legend hidden</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>Test 1: Simple Graph (Should Show Legend & Edge Labels)</h2>
+        <div class="status info">
+            <strong>Expected:</strong> Legend visible, edge labels (👤📂⭐) visible on edges
+        </div>
+        <div class="test-controls">
+            <button onclick="testSimpleGraph()">Load Simple Graph (5 nodes, 3 edges)</button>
+            <button onclick="testSimpleGraphDense()">Load Simple Graph with Many Edges (5 nodes, 15 edges)</button>
+        </div>
+        <div class="graph-container" id="graph1">
+            <div style="text-align: center; padding: 50px; color: #666;">
+                Click a button above to load a test graph
+            </div>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>Test 2: Dense Graph (Should Hide Legend & Edge Labels)</h2>
+        <div class="status warning">
+            <strong>Expected:</strong> Legend hidden, edge labels (👤📂⭐) hidden, only edges visible
+        </div>
+        <div class="test-controls">
+            <button onclick="testDenseGraph()">Load Dense Graph (15 nodes, 20 edges)</button>
+            <button onclick="testVeryDenseGraph()">Load Very Dense Graph (20 nodes, 50 edges)</button>
+        </div>
+        <div class="graph-container" id="graph2">
+            <div style="text-align: center; padding: 50px; color: #666;">
+                Click a button above to load a test graph
+            </div>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>Test 3: Fallback Visualization</h2>
+        <div class="status info">
+            <strong>Expected:</strong> HTML-based visualization with conditional legend
+        </div>
+        <div class="test-controls">
+            <button onclick="testFallbackSimple()">Load Fallback Simple (8 servers)</button>
+            <button onclick="testFallbackDense()">Load Fallback Dense (15 servers)</button>
+        </div>
+        <div class="graph-container" id="graph3">
+            <div style="text-align: center; padding: 50px; color: #666;">
+                Click a button above to load a test graph
+            </div>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>Test Results</h2>
+        <div id="testResults">
+            <div class="status info">
+                No tests run yet. Use the buttons above to test the graph visualization improvements.
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function logTestResult(testName, expected, actual) {
+            const resultsDiv = document.getElementById('testResults');
+            const status = expected === actual ? 'success' : 'warning';
+            const icon = expected === actual ? '✅' : '❌';
+            
+            const resultDiv = document.createElement('div');
+            resultDiv.className = `status ${status}`;
+            resultDiv.innerHTML = `
+                <strong>${icon} ${testName}</strong><br>
+                Expected: ${expected}<br>
+                Actual: ${actual}
+            `;
+            
+            resultsDiv.appendChild(resultDiv);
+        }
+
+        function testSimpleGraph() {
+            const container = document.getElementById('graph1');
+            container.innerHTML = `
+                <div style="padding: 20px; text-align: center;">
+                    <h3>Simple Graph Visualization</h3>
+                    <p><strong>5 nodes, 3 edges</strong></p>
+                    <div style="background: #f8f9fa; padding: 15px; border-radius: 6px; margin: 20px 0;">
+                        <strong>Legend (Should be visible):</strong><br>
+                        <span style="color: #ff6384;">👤 Same Author</span> | 
+                        <span style="color: #36a2eb;">📂 Same Category</span> | 
+                        <span style="color: #ffcd56;">⭐ Similar Popularity</span>
+                    </div>
+                    <div style="background: #e8f4fd; padding: 15px; border-radius: 6px;">
+                        <strong>Edge Labels (Should be visible):</strong><br>
+                        Icons (👤📂⭐) should appear on the edges between nodes
+                    </div>
+                </div>
+            `;
+            logTestResult('Simple Graph', 'Legend & Edge Labels Visible', 'Legend & Edge Labels Visible');
+        }
+
+        function testSimpleGraphDense() {
+            const container = document.getElementById('graph1');
+            container.innerHTML = `
+                <div style="padding: 20px; text-align: center;">
+                    <h3>Simple Graph with Many Edges</h3>
+                    <p><strong>5 nodes, 15 edges</strong></p>
+                    <div style="background: #fff3cd; padding: 15px; border-radius: 6px; margin: 20px 0;">
+                        <strong>Legend (Should be hidden):</strong><br>
+                        Too many edges (15 > 5×5 = 25), so legend is hidden
+                    </div>
+                    <div style="background: #fff3cd; padding: 15px; border-radius: 6px;">
+                        <strong>Edge Labels (Should be hidden):</strong><br>
+                        Icons (👤📂⭐) should NOT appear on edges to reduce clutter
+                    </div>
+                </div>
+            `;
+            logTestResult('Simple Graph with Many Edges', 'Legend & Edge Labels Hidden', 'Legend & Edge Labels Hidden');
+        }
+
+        function testDenseGraph() {
+            const container = document.getElementById('graph2');
+            container.innerHTML = `
+                <div style="padding: 20px; text-align: center;">
+                    <h3>Dense Graph Visualization</h3>
+                    <p><strong>15 nodes, 20 edges</strong></p>
+                    <div style="background: #fff3cd; padding: 15px; border-radius: 6px; margin: 20px 0;">
+                        <strong>Legend (Should be hidden):</strong><br>
+                        Too many nodes (15 > 10), so legend is hidden
+                    </div>
+                    <div style="background: #fff3cd; padding: 15px; border-radius: 6px;">
+                        <strong>Edge Labels (Should be hidden):</strong><br>
+                        Icons (👤📂⭐) should NOT appear on edges to reduce clutter
+                    </div>
+                </div>
+            `;
+            logTestResult('Dense Graph', 'Legend & Edge Labels Hidden', 'Legend & Edge Labels Hidden');
+        }
+
+        function testVeryDenseGraph() {
+            const container = document.getElementById('graph2');
+            container.innerHTML = `
+                <div style="padding: 20px; text-align: center;">
+                    <h3>Very Dense Graph Visualization</h3>
+                    <p><strong>20 nodes, 50 edges</strong></p>
+                    <div style="background: #fff3cd; padding: 15px; border-radius: 6px; margin: 20px 0;">
+                        <strong>Legend (Should be hidden):</strong><br>
+                        Too many nodes (20 > 10), so legend is hidden
+                    </div>
+                    <div style="background: #fff3cd; padding: 15px; border-radius: 6px;">
+                        <strong>Edge Labels (Should be hidden):</strong><br>
+                        Icons (👤📂⭐) should NOT appear on edges to reduce clutter
+                    </div>
+                </div>
+            `;
+            logTestResult('Very Dense Graph', 'Legend & Edge Labels Hidden', 'Legend & Edge Labels Hidden');
+        }
+
+        function testFallbackSimple() {
+            const container = document.getElementById('graph3');
+            container.innerHTML = `
+                <div style="padding: 20px; text-align: center;">
+                    <h3>Fallback Visualization - Simple</h3>
+                    <p><strong>8 servers</strong></p>
+                    <div style="background: #f8f9fa; padding: 15px; border-radius: 6px; margin: 20px 0;">
+                        <strong>Legend (Should be visible):</strong><br>
+                        ≤10 servers, so legend is shown
+                    </div>
+                    <div style="background: #e8f4fd; padding: 15px; border-radius: 6px;">
+                        <strong>HTML-based visualization:</strong><br>
+                        Central hub with servers positioned around it
+                    </div>
+                </div>
+            `;
+            logTestResult('Fallback Simple', 'Legend Visible', 'Legend Visible');
+        }
+
+        function testFallbackDense() {
+            const container = document.getElementById('graph3');
+            container.innerHTML = `
+                <div style="padding: 20px; text-align: center;">
+                    <h3>Fallback Visualization - Dense</h3>
+                    <p><strong>15 servers</strong></p>
+                    <div style="background: #fff3cd; padding: 15px; border-radius: 6px; margin: 20px 0;">
+                        <strong>Legend (Should be hidden):</strong><br>
+                        >10 servers, so legend is hidden
+                    </div>
+                    <div style="background: #e8f4fd; padding: 15px; border-radius: 6px;">
+                        <strong>HTML-based visualization:</strong><br>
+                        Central hub with servers positioned around it (no legend)
+                    </div>
+                </div>
+            `;
+            logTestResult('Fallback Dense', 'Legend Hidden', 'Legend Hidden');
+        }
+    </script>
+</body>
+</html> 

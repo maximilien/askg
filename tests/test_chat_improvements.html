@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Chat Improvements</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        .message {
+            background: rgba(0, 0, 0, 0.05);
+            padding: 15px;
+            border-radius: 12px;
+            margin: 10px 0;
+            border-bottom-left-radius: 4px;
+        }
+        .message a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: rgba(102, 126, 234, 0.1);
+            padding: 4px 8px;
+            border-radius: 6px;
+            border: 1px solid rgba(102, 126, 234, 0.3);
+            display: inline-block;
+            margin: 2px 0;
+        }
+        .message a:hover {
+            color: #764ba2;
+            background: rgba(102, 126, 234, 0.2);
+            border-color: rgba(102, 126, 234, 0.5);
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .message strong {
+            color: #667eea;
+            font-weight: 600;
+        }
+        .message em {
+            color: #666;
+            font-style: italic;
+        }
+        .message code {
+            background: rgba(102, 126, 234, 0.1);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 0.9em;
+            color: #667eea;
+        }
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #764ba2;
+        }
+    </style>
+</head>
+<body>
+    <h1>Test Chat Improvements</h1>
+    
+    <div class="test-section">
+        <h2>Test 1: Basic Server List (≤10 servers)</h2>
+        <div class="message" id="test1">
+            I found 5 MCP servers related to your query: "crypto".
+
+            <strong>Top 5 MCP Servers:</strong>
+
+            1. <strong>crypto-mcp-server</strong> - <a href="https://github.com/example/crypto-mcp-server" target="_blank">Repository</a>
+               A comprehensive cryptocurrency data and trading MCP server
+               <strong>Categories:</strong> blockchain, finance, crypto
+               <strong>Author:</strong> John Doe
+
+            2. <strong>gibber-mcp</strong> - <a href="https://github.com/example/gibber-mcp" target="_blank">Repository</a>
+               Advanced cryptographic operations and key management
+               <strong>Categories:</strong> security, crypto, encryption
+               <strong>Author:</strong> Jane Smith
+
+            Check the knowledge graph pane for detailed information and interactive exploration.
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>Test 2: Server List with "Show More" (>10 servers)</h2>
+        <div class="message" id="test2">
+            I found 15 MCP servers related to your query: "crypto".
+
+            <strong>Top 10 MCP Servers:</strong>
+
+            1. <strong>crypto-mcp-server</strong> - <a href="https://github.com/example/crypto-mcp-server" target="_blank">Repository</a>
+               A comprehensive cryptocurrency data and trading MCP server
+               <strong>Categories:</strong> blockchain, finance, crypto
+               <strong>Author:</strong> John Doe
+
+            2. <strong>gibber-mcp</strong> - <a href="https://github.com/example/gibber-mcp" target="_blank">Repository</a>
+               Advanced cryptographic operations and key management
+               <strong>Categories:</strong> security, crypto, encryption
+               <strong>Author:</strong> Jane Smith
+
+            3. <strong>armor-crypto-mcp</strong> - <a href="https://github.com/example/armor-crypto" target="_blank">Repository</a>
+               Secure cryptocurrency wallet and transaction management
+               <strong>Categories:</strong> security, crypto, wallet
+               <strong>Author:</strong> Bob Wilson
+
+            4. <strong>crypto-trading-bot</strong> - <a href="https://github.com/example/trading-bot" target="_blank">Repository</a>
+               Automated cryptocurrency trading with AI
+               <strong>Categories:</strong> trading, crypto, ai
+               <strong>Author:</strong> Alice Johnson
+
+            5. <strong>blockchain-explorer</strong> - <a href="https://github.com/example/blockchain-explorer" target="_blank">Repository</a>
+               Real-time blockchain data and analytics
+               <strong>Categories:</strong> blockchain, analytics, crypto
+               <strong>Author:</strong> Charlie Brown
+
+            6. <strong>crypto-price-tracker</strong> - <a href="https://github.com/example/price-tracker" target="_blank">Repository</a>
+               Live cryptocurrency price monitoring
+               <strong>Categories:</strong> crypto, monitoring, prices
+               <strong>Author:</strong> Diana Prince
+
+            7. <strong>defi-protocol-mcp</strong> - <a href="https://github.com/example/defi-protocol" target="_blank">Repository</a>
+               DeFi protocol integration and management
+               <strong>Categories:</strong> defi, crypto, protocols
+               <strong>Author:</strong> Edward Norton
+
+            8. <strong>crypto-news-aggregator</strong> - <a href="https://github.com/example/news-aggregator" target="_blank">Repository</a>
+               Cryptocurrency news and market sentiment analysis
+               <strong>Categories:</strong> news, crypto, sentiment
+               <strong>Author:</strong> Frank Miller
+
+            9. <strong>nft-marketplace-mcp</strong> - <a href="https://github.com/example/nft-marketplace" target="_blank">Repository</a>
+               NFT trading and marketplace integration
+               <strong>Categories:</strong> nft, crypto, marketplace
+               <strong>Author:</strong> Grace Kelly
+
+            10. <strong>crypto-tax-calculator</strong> - <a href="https://github.com/example/tax-calculator" target="_blank">Repository</a>
+                Cryptocurrency tax calculation and reporting
+                <strong>Categories:</strong> crypto, tax, reporting
+                <strong>Author:</strong> Henry Ford
+
+            <em>... and 5 more servers. <a href="#" class="show-more-link" data-action="expand-servers">Show All Servers</a></em>
+
+            Check the knowledge graph pane for detailed information and interactive exploration.
+        </div>
+        <button onclick="expandTest2()">Test Expand Functionality</button>
+    </div>
+
+    <div class="test-section">
+        <h2>Test 3: No Servers Found</h2>
+        <div class="message" id="test3">
+            I found 0 MCP servers related to your query: "nonexistent".
+
+            No specific MCP servers found for your query. Try rephrasing or check the knowledge graph pane for available servers.
+        </div>
+    </div>
+
+    <script>
+        function expandTest2() {
+            const test2 = document.getElementById('test2');
+            const fullContent = `I found 15 MCP servers related to your query: "crypto".
+
+<strong>All MCP Servers:</strong>
+
+1. <strong>crypto-mcp-server</strong> - <a href="https://github.com/example/crypto-mcp-server" target="_blank">Repository</a>
+   A comprehensive cryptocurrency data and trading MCP server
+   <strong>Categories:</strong> blockchain, finance, crypto
+   <strong>Author:</strong> John Doe
+
+2. <strong>gibber-mcp</strong> - <a href="https://github.com/example/gibber-mcp" target="_blank">Repository</a>
+   Advanced cryptographic operations and key management
+   <strong>Categories:</strong> security, crypto, encryption
+   <strong>Author:</strong> Jane Smith
+
+3. <strong>armor-crypto-mcp</strong> - <a href="https://github.com/example/armor-crypto" target="_blank">Repository</a>
+   Secure cryptocurrency wallet and transaction management
+   <strong>Categories:</strong> security, crypto, wallet
+   <strong>Author:</strong> Bob Wilson
+
+4. <strong>crypto-trading-bot</strong> - <a href="https://github.com/example/trading-bot" target="_blank">Repository</a>
+   Automated cryptocurrency trading with AI
+   <strong>Categories:</strong> trading, crypto, ai
+   <strong>Author:</strong> Alice Johnson
+
+5. <strong>blockchain-explorer</strong> - <a href="https://github.com/example/blockchain-explorer" target="_blank">Repository</a>
+   Real-time blockchain data and analytics
+   <strong>Categories:</strong> blockchain, analytics, crypto
+   <strong>Author:</strong> Charlie Brown
+
+6. <strong>crypto-price-tracker</strong> - <a href="https://github.com/example/price-tracker" target="_blank">Repository</a>
+   Live cryptocurrency price monitoring
+   <strong>Categories:</strong> crypto, monitoring, prices
+   <strong>Author:</strong> Diana Prince
+
+7. <strong>defi-protocol-mcp</strong> - <a href="https://github.com/example/defi-protocol" target="_blank">Repository</a>
+   DeFi protocol integration and management
+   <strong>Categories:</strong> defi, crypto, protocols
+   <strong>Author:</strong> Edward Norton
+
+8. <strong>crypto-news-aggregator</strong> - <a href="https://github.com/example/news-aggregator" target="_blank">Repository</a>
+   Cryptocurrency news and market sentiment analysis
+   <strong>Categories:</strong> news, crypto, sentiment
+   <strong>Author:</strong> Frank Miller
+
+9. <strong>nft-marketplace-mcp</strong> - <a href="https://github.com/example/nft-marketplace" target="_blank">Repository</a>
+   NFT trading and marketplace integration
+   <strong>Categories:</strong> nft, crypto, marketplace
+   <strong>Author:</strong> Grace Kelly
+
+10. <strong>crypto-tax-calculator</strong> - <a href="https://github.com/example/tax-calculator" target="_blank">Repository</a>
+    Cryptocurrency tax calculation and reporting
+    <strong>Categories:</strong> crypto, tax, reporting
+    <strong>Author:</strong> Henry Ford
+
+11. <strong>crypto-mining-pool</strong> - <a href="https://github.com/example/mining-pool" target="_blank">Repository</a>
+    Cryptocurrency mining pool management
+    <strong>Categories:</strong> mining, crypto, pool
+    <strong>Author:</strong> Isaac Newton
+
+12. <strong>crypto-wallet-backup</strong> - <a href="https://github.com/example/wallet-backup" target="_blank">Repository</a>
+    Secure cryptocurrency wallet backup and recovery
+    <strong>Categories:</strong> wallet, crypto, backup
+    <strong>Author:</strong> Julia Roberts
+
+13. <strong>crypto-exchange-api</strong> - <a href="https://github.com/example/exchange-api" target="_blank">Repository</a>
+    Cryptocurrency exchange API integration
+    <strong>Categories:</strong> exchange, crypto, api
+    <strong>Author:</strong> Kevin Spacey
+
+14. <strong>crypto-portfolio-tracker</strong> - <a href="https://github.com/example/portfolio-tracker" target="_blank">Repository</a>
+    Cryptocurrency portfolio tracking and analytics
+    <strong>Categories:</strong> portfolio, crypto, analytics
+    <strong>Author:</strong> Lisa Simpson
+
+15. <strong>crypto-arbitrage-bot</strong> - <a href="https://github.com/example/arbitrage-bot" target="_blank">Repository</a>
+    Cryptocurrency arbitrage opportunity detection
+    <strong>Categories:</strong> arbitrage, crypto, trading
+    <strong>Author:</strong> Mario Bros
+
+Check the knowledge graph pane for detailed information and interactive exploration.`;
+
+            test2.innerHTML = fullContent.replace(/\n/g, '<br>');
+            alert('Expanded to show all 15 servers!');
+        }
+
+        // Test the show-more link functionality
+        document.addEventListener('click', (e) => {
+            if (e.target.classList.contains('show-more-link') && e.target.dataset.action === 'expand-servers') {
+                e.preventDefault();
+                console.log('Show more link clicked!');
+                expandTest2();
+            }
+        });
+    </script>
+</body>
+</html> 
