@@ -353,6 +353,60 @@ body {
     border-bottom-left-radius: 4px;
 }
 
+/* Enhanced styling for server lists in chat messages */
+.message.ai .message-content a {
+    color: #667eea;
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.2s;
+}
+
+.message.ai .message-content a:hover {
+    color: #764ba2;
+    text-decoration: underline;
+}
+
+.message.ai .message-content strong {
+    color: #667eea;
+    font-weight: 600;
+}
+
+.message.ai .message-content em {
+    color: #666;
+    font-style: italic;
+}
+
+.message.ai .message-content code {
+    background: rgba(102, 126, 234, 0.1);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    font-size: 0.9em;
+    color: #667eea;
+}
+
+.message.ai .message-content .show-more-link {
+    color: #667eea !important;
+    text-decoration: none !important;
+    font-weight: 600 !important;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: rgba(102, 126, 234, 0.1);
+    padding: 4px 8px;
+    border-radius: 6px;
+    border: 1px solid rgba(102, 126, 234, 0.3);
+    display: inline-block;
+    margin: 2px 0;
+}
+
+.message.ai .message-content .show-more-link:hover {
+    color: #764ba2 !important;
+    background: rgba(102, 126, 234, 0.2);
+    border-color: rgba(102, 126, 234, 0.5);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
 .message-time {
     font-size: 0.75rem;
     color: #999;

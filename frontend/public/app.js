@@ -101,6 +101,9 @@ class AskGChatApp {
         this.socket.on('mcp_servers_result', (result) => {
             console.log('Received MCP servers:', result);
             this.displayMCPServers(result);
+            
+            // Store the full result for potential expansion
+            this.currentMCPResult = result;
         });
 
         this.socket.on('chat_cleared', () => {
@@ -245,6 +248,19 @@ class AskGChatApp {
 
         // Resize divider
         this.initializeResizeDivider();
+
+        // Event delegation for show-more links
+        this.chatMessages.addEventListener('click', (e) => {
+            console.log('Chat message clicked:', e.target);
+            console.log('Target classes:', e.target.classList);
+            console.log('Target dataset:', e.target.dataset);
+            
+            if (e.target.classList.contains('show-more-link') && e.target.dataset.action === 'expand-servers') {
+                console.log('Show more link clicked!');
+                e.preventDefault();
+                this.expandServerList();
+            }
+        });
     }
 
     toggleMenu() {
@@ -589,11 +605,18 @@ class AskGChatApp {
     }
 
     formatMessageContent(content) {
-        // Basic markdown-like formatting
+        // Enhanced markdown-like formatting with links
         return content
             .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
             .replace(/\*(.*?)\*/g, '<em>$1</em>')
             .replace(/`(.*?)`/g, '<code>$1</code>')
+            .replace(/\[([^\]]+)\]\(([^)]+)\)/g, (match, text, url) => {
+                // Special handling for show-more link
+                if (url === '#show-more') {
+                    return `<a href="#" class="show-more-link" data-action="expand-servers">${text}</a>`;
+                }
+                return `<a href="${url}" target="_blank" rel="noopener noreferrer">${text}</a>`;
+            })
             .replace(/\n/g, '<br>');
     }
 
@@ -1923,34 +1946,37 @@ class AskGChatApp {
             .style('text-anchor', 'middle')
             .style('pointer-events', 'none');
 
-        // Add edge labels for relationships
-        const edgeLabel = svg.append('g')
-            .selectAll('text')
-            .data(links)
-            .enter().append('text')
-            .attr('class', 'graph-edge-label')
-            .text(d => {
-                switch(d.type) {
-                    case 'same_author': return '👤';
-                    case 'same_category': return '📂';
-                    case 'similar_popularity': return '⭐';
-                    default: return '🔗';
-                }
-            })
-            .attr('dy', '.35em')
-            .style('font-size', '12px')
-            .style('font-weight', 'bold')
-            .style('fill', d => {
-                switch(d.type) {
-                    case 'same_author': return 'rgba(255, 99, 132, 0.9)';
-                    case 'same_category': return 'rgba(54, 162, 235, 0.9)';
-                    case 'similar_popularity': return 'rgba(255, 205, 86, 0.9)';
-                    default: return 'rgba(102, 126, 234, 0.9)';
-                }
-            })
-            .style('text-anchor', 'middle')
-            .style('pointer-events', 'none')
-            .style('text-shadow', '1px 1px 2px rgba(255,255,255,0.8)');
+        // Add edge labels for relationships only for simple graphs
+        let edgeLabel;
+        if (shouldShowLegend) {
+            edgeLabel = svg.append('g')
+                .selectAll('text')
+                .data(links)
+                .enter().append('text')
+                .attr('class', 'graph-edge-label')
+                .text(d => {
+                    switch(d.type) {
+                        case 'same_author': return '👤';
+                        case 'same_category': return '📂';
+                        case 'similar_popularity': return '⭐';
+                        default: return '🔗';
+                    }
+                })
+                .attr('dy', '.35em')
+                .style('font-size', '12px')
+                .style('font-weight', 'bold')
+                .style('fill', d => {
+                    switch(d.type) {
+                        case 'same_author': return 'rgba(255, 99, 132, 0.9)';
+                        case 'same_category': return 'rgba(54, 162, 235, 0.9)';
+                        case 'similar_popularity': return 'rgba(255, 205, 86, 0.9)';
+                        default: return 'rgba(102, 126, 234, 0.9)';
+                    }
+                })
+                .style('text-anchor', 'middle')
+                .style('pointer-events', 'none')
+                .style('text-shadow', '1px 1px 2px rgba(255,255,255,0.8)');
+        }
 
         // Add relationship legend only for simple graphs
         if (shouldShowLegend) {
@@ -2023,9 +2049,12 @@ class AskGChatApp {
                 .attr('x', d => d.x)
                 .attr('y', d => d.y);
 
-            edgeLabel
-                .attr('x', d => (d.source.x + d.target.x) / 2)
-                .attr('y', d => (d.source.y + d.target.y) / 2);
+            // Update edge labels only if they exist (for simple graphs)
+            if (edgeLabel) {
+                edgeLabel
+                    .attr('x', d => (d.source.x + d.target.x) / 2)
+                    .attr('y', d => (d.source.y + d.target.y) / 2);
+            }
         }
 
         function dragstarted(event, d) {
@@ -2114,6 +2143,11 @@ class AskGChatApp {
 
     createFallbackVisualization(servers, graphContainer) {
         console.log('Creating fallback visualization for', servers.length, 'servers');
+        
+        // Determine if legend should be shown based on graph complexity
+        const shouldShowLegend = servers.length <= 10;
+        console.log('Fallback graph complexity - Servers:', servers.length);
+        console.log('Fallback legend will be shown:', shouldShowLegend);
         
         // Clear the container first
         graphContainer.innerHTML = '';
@@ -2347,35 +2381,37 @@ class AskGChatApp {
             networkContainer.appendChild(serverNode);
         });
         
-        // Add relationship legend to fallback visualization
-        const legend = document.createElement('div');
-        legend.style.cssText = `
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            background: rgba(255, 255, 255, 0.9);
-            border-radius: 6px;
-            padding: 8px;
-            font-size: 10px;
-            color: #333;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        `;
-        legend.innerHTML = `
-            <div style="margin-bottom: 4px;"><strong>Relationships:</strong></div>
-            <div style="display: flex; align-items: center; margin-bottom: 2px;">
-                <div style="width: 20px; height: 2px; background: rgba(255, 99, 132, 0.8); margin-right: 5px;"></div>
-                <span>👤 Same Author</span>
-            </div>
-            <div style="display: flex; align-items: center; margin-bottom: 2px;">
-                <div style="width: 20px; height: 2px; background: rgba(54, 162, 235, 0.8); margin-right: 5px;"></div>
-                <span>📂 Same Category</span>
-            </div>
-            <div style="display: flex; align-items: center;">
-                <div style="width: 20px; height: 2px; background: rgba(255, 205, 86, 0.8); margin-right: 5px;"></div>
-                <span>⭐ Similar Popularity</span>
-            </div>
-        `;
-        container.appendChild(legend);
+        // Add relationship legend to fallback visualization only for simple graphs
+        if (shouldShowLegend) {
+            const legend = document.createElement('div');
+            legend.style.cssText = `
+                position: absolute;
+                top: 10px;
+                left: 10px;
+                background: rgba(255, 255, 255, 0.9);
+                border-radius: 6px;
+                padding: 8px;
+                font-size: 10px;
+                color: #333;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            `;
+            legend.innerHTML = `
+                <div style="margin-bottom: 4px;"><strong>Relationships:</strong></div>
+                <div style="display: flex; align-items: center; margin-bottom: 2px;">
+                    <div style="width: 20px; height: 2px; background: rgba(255, 99, 132, 0.8); margin-right: 5px;"></div>
+                    <span>👤 Same Author</span>
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 2px;">
+                    <div style="width: 20px; height: 2px; background: rgba(54, 162, 235, 0.8); margin-right: 5px;"></div>
+                    <span>📂 Same Category</span>
+                </div>
+                <div style="display: flex; align-items: center;">
+                    <div style="width: 20px; height: 2px; background: rgba(255, 205, 86, 0.8); margin-right: 5px;"></div>
+                    <span>⭐ Similar Popularity</span>
+                </div>
+            `;
+            container.appendChild(legend);
+        }
         
         container.appendChild(networkContainer);
         graphContainer.appendChild(container);
@@ -2421,6 +2457,63 @@ class AskGChatApp {
                 }
             }, 300);
         }, 3000);
+    }
+
+    expandServerList() {
+        console.log('expandServerList called');
+        console.log('currentMCPResult:', this.currentMCPResult);
+        
+        if (!this.currentMCPResult || !this.currentMCPResult.servers) {
+            console.log('No MCP result available for expansion');
+            return;
+        }
+
+        // Find the last AI message and update it with the full server list
+        const messages = this.chatMessages.querySelectorAll('.message.ai');
+        if (messages.length === 0) return;
+
+        const lastAIMessage = messages[messages.length - 1];
+        const messageContent = lastAIMessage.querySelector('.message-content');
+        
+        if (!messageContent) return;
+
+        // Generate the full server list content
+        let fullContent = `I found ${this.currentMCPResult.servers.length} MCP servers related to your query.\n\n`;
+        fullContent += `**All MCP Servers:**\n\n`;
+        
+        this.currentMCPResult.servers.forEach((server, index) => {
+            fullContent += `${index + 1}. **${server.name}**`;
+            if (server.repository) {
+                fullContent += ` - [Repository](${server.repository})`;
+            }
+            fullContent += `\n`;
+            
+            if (server.description) {
+                fullContent += `   ${server.description}\n`;
+            }
+            
+            if (server.categories && server.categories.length > 0) {
+                const categories = server.categories.map(cat => cat.value).join(', ');
+                fullContent += `   **Categories:** ${categories}\n`;
+            }
+            
+            if (server.author) {
+                fullContent += `   **Author:** ${server.author}\n`;
+            }
+            
+            fullContent += `\n`;
+        });
+        
+        fullContent += `Check the knowledge graph pane for detailed information and interactive exploration.`;
+        
+        // Update the message content
+        messageContent.innerHTML = `
+            ${this.formatMessageContent(fullContent)}
+            <div class="message-time">${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+        `;
+        
+        // Show notification that the list was expanded
+        this.showNotification(`Expanded to show all ${this.currentMCPResult.servers.length} servers`, 'success');
     }
 
     initializeResizeDivider() {
@@ -2794,17 +2887,17 @@ document.addEventListener('DOMContentLoaded', () => {
     // Check if D3.js is already loaded
     if (typeof d3 !== 'undefined' && d3) {
         console.log('D3.js already loaded, initializing app...');
-        new AskGChatApp();
+        window.askgApp = new AskGChatApp();
     } else {
         console.log('D3.js not loaded yet, waiting...');
         // Wait a bit for D3.js to load, then initialize
         setTimeout(() => {
             if (typeof d3 !== 'undefined' && d3) {
                 console.log('D3.js loaded after delay, initializing app...');
-                new AskGChatApp();
+                window.askgApp = new AskGChatApp();
             } else {
                 console.log('D3.js still not available, initializing app anyway...');
-                new AskGChatApp();
+                window.askgApp = new AskGChatApp();
             }
         }, 1000);
     }
